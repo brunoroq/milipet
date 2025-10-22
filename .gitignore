@@ -1,0 +1,7 @@
+# Archivos temporales y config local
+config/local.php
+database/*.sql
+public/assets/img/*.png
+*.zip
+.DS_Store
+Thumbs.db
