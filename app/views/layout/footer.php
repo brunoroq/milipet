@@ -1,0 +1,1 @@
+<?php ?></main><footer class="footer"><div class="container"><small>© <?php echo date('Y'); ?> MiliPet — Maipú, Chile • Sitio en desarrollo</small></div></footer><script src="assets/js/app.js"></script></body></html>

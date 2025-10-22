@@ -1,0 +1,1 @@
+<?php ?><h1>Quiénes somos</h1><p>Tienda especializada en artículos y alimentos para mascotas, ubicada en Maipú.</p>

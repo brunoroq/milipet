@@ -1,0 +1,1 @@
+<?php ?><h1>Políticas y contacto</h1><ul><li>Devoluciones: presentar boleta y producto en buen estado dentro de 10 días.</li><li>Retiro en tienda: disponible en local principal (Pumay, Maipú).</li><li>Horarios: Lunes a Sábado 10:00–19:00.</li></ul><p><strong>Contacto:</strong> WhatsApp +56 9 0000 0000 — Instagram @milipet</p>

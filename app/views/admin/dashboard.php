@@ -1,0 +1,1 @@
+<?php ?><h1>Panel de administración</h1><nav class="admin-nav"><a class="btn" href="?r=admin/products">Productos</a><a class="btn-outline" href="?r=logout">Salir</a></nav><p>Desde aquí podrás gestionar el catálogo y contenido.</p>

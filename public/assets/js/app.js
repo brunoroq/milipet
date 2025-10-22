@@ -1,0 +1,1 @@
+const CART_KEY='milipet_cart';function getCart(){try{return JSON.parse(localStorage.getItem(CART_KEY))||[]}catch(e){return[]}}function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c))}function addToCart(id){const c=getCart();if(!c.includes(id)){c.push(id);saveCart(c);alert('Producto añadido al carrito.')}else{alert('Ya está en el carrito.')}}

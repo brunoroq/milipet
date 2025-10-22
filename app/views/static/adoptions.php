@@ -1,0 +1,1 @@
+<?php ?><h1>Campañas de adopción</h1><p>Difundimos jornadas solidarias y fundaciones asociadas.</p>
