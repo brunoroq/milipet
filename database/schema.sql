@@ -28,6 +28,10 @@ CREATE TABLE IF NOT EXISTS campaigns (
   title VARCHAR(200) NOT NULL,
   description TEXT,
   date DATE NOT NULL,
+  location VARCHAR(255) NOT NULL,
+  foundation VARCHAR(100) NULL,
+  image_url VARCHAR(255) NULL,
+  contact_info TEXT NULL,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

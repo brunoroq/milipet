@@ -7,7 +7,22 @@
   <label>Descripción <textarea name="description" id="prod-desc"></textarea></label>
   <div class="row">
     <label>Precio <input type="number" name="price" id="prod-price" step="1" min="0" required></label>
-    <label>Stock <input type="number" name="stock" id="prod-stock" step="1" min="0" required></label>
+    <label>
+      Stock 
+      <div class="stock-input">
+        <input type="number" name="stock" id="prod-stock" step="1" min="0" required>
+        <div class="stock-actions">
+          <button type="button" class="btn-sm" onclick="adjustStock(1)">+1</button>
+          <button type="button" class="btn-sm" onclick="adjustStock(5)">+5</button>
+          <button type="button" class="btn-sm danger" onclick="adjustStock(-1)">-1</button>
+        </div>
+      </div>
+    </label>
+  </div>
+  <div class="stock-alerts">
+    <label><input type="number" name="stock_alert" id="prod-stock-alert" step="1" min="1" value="5"> 
+      Alerta de stock bajo (unidades)
+    </label>
   </div>
   <?php if (!empty($flash)): ?>
     <div class="alert <?php echo $flash['type']==='error' ? 'alert-error' : 'alert-success'; ?>">
@@ -44,15 +59,29 @@
 </form>
 
 <table class="table">
-  <thead><tr><th>ID</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th><th></th></tr></thead>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Categoría</th>
+      <th>Precio</th>
+      <th>Stock</th>
+      <th>Estado</th>
+      <th></th>
+    </tr>
+  </thead>
   <tbody>
     <?php foreach ($products as $p): ?>
-      <tr>
+      <tr class="<?php echo ($p['stock'] <= 5 ? 'low-stock' : ''); ?>">
         <td><?php echo $p['id']; ?></td>
         <td><?php echo htmlspecialchars($p['name']); ?></td>
         <td><?php echo htmlspecialchars($p['category_name'] ?? ''); ?></td>
         <td>$<?php echo number_format($p['price'] ?? 0, 0, ',', '.'); ?></td>
-        <td><?php echo (int)$p['stock']; ?></td>
+        <td>
+          <span class="stock-badge <?php echo ($p['stock'] <= 0 ? 'out' : ($p['stock'] <= 5 ? 'low' : 'ok')); ?>">
+            <?php echo (int)$p['stock']; ?>
+          </span>
+        </td>
         <td><?php echo $p['is_active'] ? 'Activo' : 'Oculto'; ?></td>
         <td class="row">
           <button class="btn-outline" onclick='prefill(<?php echo json_encode($p, JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP); ?>)'>Editar</button>
@@ -82,4 +111,83 @@ function prefill(p) {
   if (p.image_url) { preview.src = p.image_url; preview.style.display='block'; } else { preview.style.display='none'; }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+function adjustStock(amount) {
+  const stockInput = document.getElementById('prod-stock');
+  const currentStock = parseInt(stockInput.value) || 0;
+  stockInput.value = Math.max(0, currentStock + amount);
+}
 </script>
+
+<style>
+.stock-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stock-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.btn-sm {
+  padding: 2px 8px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.btn-sm:hover {
+  background: #f5f5f5;
+}
+
+.btn-sm.danger {
+  color: #c62828;
+  border-color: #ffcdd2;
+}
+
+.btn-sm.danger:hover {
+  background: #ffebee;
+}
+
+.stock-alerts {
+  margin: 10px 0;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.stock-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+.stock-badge.out {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.stock-badge.low {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.stock-badge.ok {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+tr.low-stock {
+  background-color: #fff3e0;
+}
+
+tr.low-stock:hover {
+  background-color: #ffe0b2;
+}
+</style>

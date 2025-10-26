@@ -14,14 +14,15 @@ class Product {
         return in_array(strtolower($col), $cache, true);
     }
 
-    public static function search($q = '', $category_id = null, $species = null) {
+    public static function search($q = '', $category_id = null, $species = null, $include_out_of_stock = false) {
         $pdo = db_connect();
         $sql = "SELECT DISTINCT p.*, c.name AS category_name 
                 FROM products p 
                 LEFT JOIN categories c ON c.id=p.category_id
                 LEFT JOIN product_species ps ON ps.product_id = p.id
                 LEFT JOIN species s ON s.id = ps.species_id
-                WHERE p.is_active=1";
+                WHERE p.is_active=1" . 
+                (!$include_out_of_stock ? " AND p.stock > 0" : "");
         $params = [];
         if ($q !== '') {
             $sql .= " AND (p.name LIKE :q OR p.description LIKE :q)";
@@ -118,5 +119,42 @@ class Product {
         $pdo = db_connect();
         $st = $pdo->prepare("DELETE FROM products WHERE id=:id");
         return $st->execute([':id' => $id]);
+    }
+
+    /**
+     * Check if a product has stock available
+     */
+    public static function hasStock($id) {
+        $pdo = db_connect();
+        $st = $pdo->prepare("SELECT stock FROM products WHERE id = :id");
+        $st->execute([':id' => $id]);
+        $result = $st->fetch(PDO::FETCH_COLUMN);
+        return $result > 0;
+    }
+
+    /**
+     * Update product stock
+     */
+    public static function updateStock($id, $quantity) {
+        $pdo = db_connect();
+        $st = $pdo->prepare("UPDATE products SET stock = stock + :quantity WHERE id = :id");
+        return $st->execute([
+            ':id' => $id,
+            ':quantity' => $quantity
+        ]);
+    }
+
+    /**
+     * Get products with low stock (less than specified amount)
+     */
+    public static function getLowStock($threshold = 5) {
+        $pdo = db_connect();
+        $st = $pdo->prepare("SELECT p.*, c.name AS category_name 
+                            FROM products p 
+                            LEFT JOIN categories c ON c.id=p.category_id 
+                            WHERE p.stock <= :threshold 
+                            ORDER BY p.stock ASC");
+        $st->execute([':threshold' => $threshold]);
+        return $st->fetchAll();
     }
 }
