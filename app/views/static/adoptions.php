@@ -14,10 +14,10 @@
                     <span class="month">Oct</span>
                 </div>
                 <div class="event-details">
-                    <h3>Gran Jornada de Adopción</h3>
-                    <p class="event-location">Plaza de Maipú</p>
-                    <p class="event-time">10:00 - 17:00 hrs</p>
-                    <p class="event-description">Jornada especial con más de 20 perritos y gatitos en busca de familia.</p>
+                    <h3 class="text-dark">Gran Jornada de Adopción</h3>
+                    <p class="event-location text-secondary">Plaza de Maipú</p>
+                    <p class="event-time text-secondary">10:00 - 17:00 hrs</p>
+                    <p class="event-description text-dark">Jornada especial con más de 20 perritos y gatitos en busca de familia.</p>
                 </div>
             </article>
 
@@ -27,10 +27,10 @@
                     <span class="month">Nov</span>
                 </div>
                 <div class="event-details">
-                    <h3>Adopción Responsable</h3>
-                    <p class="event-location">Parque Tres Poniente</p>
-                    <p class="event-time">11:00 - 16:00 hrs</p>
-                    <p class="event-description">Jornada enfocada en mascotas adultas que buscan un hogar definitivo.</p>
+                    <h3 class="text-dark">Adopción Responsable</h3>
+                    <p class="event-location text-secondary">Parque Tres Poniente</p>
+                    <p class="event-time text-secondary">11:00 - 16:00 hrs</p>
+                    <p class="event-description text-dark">Jornada enfocada en mascotas adultas que buscan un hogar definitivo.</p>
                 </div>
             </article>
         </div>
@@ -42,8 +42,8 @@
             <article class="foundation-card">
                 <img src="assets/img/foundation1.jpg" alt="Fundación Patitas Felices">
                 <div class="foundation-info">
-                    <h3>Fundación Patitas Felices</h3>
-                    <p>Dedicados al rescate y rehabilitación de perros y gatos en situación de calle.</p>
+                    <h3 class="text-dark">Fundación Patitas Felices</h3>
+                    <p class="text-dark">Dedicados al rescate y rehabilitación de perros y gatos en situación de calle.</p>
                     <div class="foundation-contact">
                         <a href="https://instagram.com/patitasfelices" target="_blank" class="social-link">
                             <i class="fab fa-instagram"></i> @patitasfelices
@@ -58,8 +58,8 @@
             <article class="foundation-card">
                 <img src="assets/img/foundation2.jpg" alt="Fundación Amor Animal">
                 <div class="foundation-info">
-                    <h3>Fundación Amor Animal</h3>
-                    <p>Especializada en el cuidado y rehabilitación de mascotas con necesidades especiales.</p>
+                    <h3 class="text-dark">Fundación Amor Animal</h3>
+                    <p class="text-dark">Especializada en el cuidado y rehabilitación de mascotas con necesidades especiales.</p>
                     <div class="foundation-contact">
                         <a href="https://instagram.com/amoranimal" target="_blank" class="social-link">
                             <i class="fab fa-instagram"></i> @amoranimal
@@ -78,7 +78,7 @@
         <div class="info-grid">
             <div class="info-card">
                 <h3>Requisitos para Adoptar</h3>
-                <ul>
+                <ul class="text-dark">
                     <li>Ser mayor de edad</li>
                     <li>Presentar cédula de identidad</li>
                     <li>Comprobante de domicilio</li>
@@ -89,7 +89,7 @@
 
             <div class="info-card">
                 <h3>Beneficios incluidos</h3>
-                <ul>
+                <ul class="text-dark">
                     <li>Primera consulta veterinaria</li>
                     <li>Vacunas al día</li>
                     <li>Desparasitación</li>
@@ -100,7 +100,7 @@
 
             <div class="info-card">
                 <h3>Compromiso Post-Adopción</h3>
-                <ul>
+                <ul class="text-dark">
                     <li>Seguimiento veterinario regular</li>
                     <li>Fotos de seguimiento</li>
                     <li>Visitas de control</li>
@@ -115,26 +115,26 @@
         <div class="support-options">
             <div class="support-card">
                 <i class="fas fa-home"></i>
-                <h3>Hogar Temporal</h3>
-                <p>Ofrece tu casa como hogar de tránsito mientras se encuentra una familia definitiva.</p>
+                <h3 class="text-dark">Hogar Temporal</h3>
+                <p class="text-dark">Ofrece tu casa como hogar de tránsito mientras se encuentra una familia definitiva.</p>
             </div>
 
             <div class="support-card">
                 <i class="fas fa-heart"></i>
-                <h3>Apadrinamiento</h3>
-                <p>Contribuye mensualmente con los gastos de un animal rescatado.</p>
+                <h3 class="text-dark">Apadrinamiento</h3>
+                <p class="text-dark">Contribuye mensualmente con los gastos de un animal rescatado.</p>
             </div>
 
             <div class="support-card">
                 <i class="fas fa-hands-helping"></i>
-                <h3>Voluntariado</h3>
-                <p>Participa en jornadas de adopción y eventos de las fundaciones.</p>
+                <h3 class="text-dark">Voluntariado</h3>
+                <p class="text-dark">Participa en jornadas de adopción y eventos de las fundaciones.</p>
             </div>
 
             <div class="support-card">
                 <i class="fas fa-gift"></i>
-                <h3>Donaciones</h3>
-                <p>Dona alimentos, medicinas o implementos para los refugios.</p>
+                <h3 class="text-dark">Donaciones</h3>
+                <p class="text-dark">Dona alimentos, medicinas o implementos para los refugios.</p>
             </div>
         </div>
     </section>

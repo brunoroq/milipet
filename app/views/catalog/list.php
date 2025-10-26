@@ -35,8 +35,8 @@
     <article class="card <?php echo ($p['stock'] <= 0 ? 'out-of-stock' : ''); ?>">
         <img src="<?php echo htmlspecialchars($p['image_url'] ?: 'assets/img/placeholder.png'); ?>">
         <h3><?php echo htmlspecialchars($p['name']); ?></h3>
-        <p class="muted"><?php echo htmlspecialchars($p['category_name'] ?? ''); ?></p>
-        <strong>$<?php echo number_format($p['price'] ?? 0, 0, ',', '.'); ?></strong>
+        <p class="text-secondary"><?php echo htmlspecialchars($p['category_name'] ?? ''); ?></p>
+        <strong class="text-dark fs-5">$<?php echo number_format($p['price'] ?? 0, 0, ',', '.'); ?></strong>
         
         <?php if ($p['stock'] <= 0): ?>
             <p class="stock-status out">Sin stock</p>

@@ -1,22 +1,22 @@
 <?php ?>
 <article class="about-section">
     <header class="about-header">
-        <h1>Quiénes somos</h1>
-        <p class="tagline">Tu tienda de confianza para el cuidado y bienestar de tus mascotas en Maipú</p>
+        <h1 class="text-dark">Quiénes somos</h1>
+        <p class="tagline text-secondary">Tu tienda de confianza para el cuidado y bienestar de tus mascotas en Maipú</p>
     </header>
 
     <section class="about-content">
         <div class="about-story">
-            <h2>Nuestra Historia</h2>
-            <p>Desde 2020, MiliPet nace con la misión de ofrecer productos de calidad para el cuidado de mascotas en la comuna de Maipú. Lo que comenzó como un pequeño emprendimiento familiar, se ha convertido en un referente local para dueños de mascotas que buscan lo mejor para sus compañeros peludos.</p>
+            <h2 class="text-dark">Nuestra Historia</h2>
+            <p class="text-dark">Desde 2020, MiliPet nace con la misión de ofrecer productos de calidad para el cuidado de mascotas en la comuna de Maipú. Lo que comenzó como un pequeño emprendimiento familiar, se ha convertido en un referente local para dueños de mascotas que buscan lo mejor para sus compañeros peludos.</p>
             
-            <p>Nuestra experiencia en el cuidado animal y el compromiso con el bienestar de las mascotas nos ha permitido crear un espacio donde encontrarás todo lo necesario para el cuidado de tus animales, desde alimentos premium hasta accesorios especializados.</p>
+            <p class="text-dark">Nuestra experiencia en el cuidado animal y el compromiso con el bienestar de las mascotas nos ha permitido crear un espacio donde encontrarás todo lo necesario para el cuidado de tus animales, desde alimentos premium hasta accesorios especializados.</p>
         </div>
 
         <div class="about-mission">
-            <h2>Nuestra Misión</h2>
-            <p>En MiliPet nos dedicamos a mejorar la vida de las mascotas y sus familias, ofreciendo:</p>
-            <ul>
+            <h2 class="text-dark">Nuestra Misión</h2>
+            <p class="text-dark">En MiliPet nos dedicamos a mejorar la vida de las mascotas y sus familias, ofreciendo:</p>
+            <ul class="text-dark">
                 <li>Productos de alta calidad seleccionados cuidadosamente</li>
                 <li>Asesoría personalizada para el cuidado de tu mascota</li>
                 <li>Precios justos y competitivos</li>
@@ -25,35 +25,35 @@
         </div>
 
         <div class="about-vision">
-            <h2>Nuestra Visión</h2>
-            <p>Aspiramos a ser la tienda de mascotas preferida en Maipú, reconocida por nuestra calidad, servicio y compromiso con el bienestar animal.</p>
+            <h2 class="text-dark">Nuestra Visión</h2>
+            <p class="text-dark">Aspiramos a ser la tienda de mascotas preferida en Maipú, reconocida por nuestra calidad, servicio y compromiso con el bienestar animal.</p>
         </div>
 
         <div class="about-values">
-            <h2>Nuestros Valores</h2>
+            <h2 class="text-dark">Nuestros Valores</h2>
             <div class="values-grid">
                 <div class="value-item">
                     <h3>Calidad</h3>
-                    <p>Seleccionamos cuidadosamente cada producto para garantizar lo mejor para tu mascota.</p>
+                    <p class="text-dark">Seleccionamos cuidadosamente cada producto para garantizar lo mejor para tu mascota.</p>
                 </div>
                 <div class="value-item">
                     <h3>Compromiso</h3>
-                    <p>Nos dedicamos a entender y satisfacer las necesidades de cada mascota.</p>
+                    <p class="text-dark">Nos dedicamos a entender y satisfacer las necesidades de cada mascota.</p>
                 </div>
                 <div class="value-item">
                     <h3>Comunidad</h3>
-                    <p>Trabajamos junto a fundaciones locales para promover la adopción responsable.</p>
+                    <p class="text-dark">Trabajamos junto a fundaciones locales para promover la adopción responsable.</p>
                 </div>
                 <div class="value-item">
                     <h3>Servicio</h3>
-                    <p>Brindamos asesoría personalizada para cada cliente y sus mascotas.</p>
+                    <p class="text-dark">Brindamos asesoría personalizada para cada cliente y sus mascotas.</p>
                 </div>
             </div>
         </div>
     </section>
 
     <section class="about-gallery">
-        <h2>Nuestra Tienda</h2>
+        <h2 class="text-dark">Nuestra Tienda</h2>
         <div class="gallery-grid">
             <!-- Aquí se pueden agregar las fotos de la tienda -->
             <div class="gallery-item">

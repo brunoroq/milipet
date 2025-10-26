@@ -10,7 +10,7 @@ $config = [
         'email' => 'contacto@milipet.cl',
         'social' => [
             'whatsapp' => 'https://wa.me/56XXXXXXXXX', // Replace with actual WhatsApp number
-            'instagram' => 'https://instagram.com/milipet',
+            'instagram' => 'https://www.instagram.com/mili_petshop/',
             'facebook' => 'https://facebook.com/milipet'
         ],
         'business_hours' => [
@@ -44,7 +44,7 @@ return [
         'email' => 'contacto@milipet.cl',
         'social' => [
             'whatsapp' => 'https://wa.me/56XXXXXXXXX', // Replace with actual WhatsApp number
-            'instagram' => 'https://instagram.com/milipet',
+            'instagram' => 'https://www.instagram.com/mili_petshop/',
             'facebook' => 'https://facebook.com/milipet'
         ],
         'business_hours' => [

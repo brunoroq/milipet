@@ -1,6 +1,25 @@
 <?php
-require_once __DIR__ . '/../../config/config.php';
-$storeConfig = $config;
+// Cargar la configuración desde la ruta raíz del proyecto
+// app/views/layout -> views -> app -> (root) -> config/config.php
+require_once __DIR__ . '/../../../config/config.php';
+// Evitar notices si $config no está definido o no es array
+$storeConfig = (isset($config) && is_array($config)) ? $config : [];
+// Helper para renderizar íconos: usa Font Awesome si está disponible, si no, usa un emoji legible
+if (!function_exists('mp_render_icon')) {
+    function mp_render_icon(string $platform): string {
+        $p = strtolower($platform);
+        if (defined('FONTAWESOME_KIT') && FONTAWESOME_KIT) {
+            return '<i class="fab fa-' . htmlspecialchars($p, ENT_QUOTES, 'UTF-8') . '"></i>';
+        }
+        $emoji = [
+            'instagram' => '📷',
+            'facebook'  => '📘',
+            'whatsapp'  => '💬',
+        ];
+        $char = $emoji[$p] ?? '🔗';
+        return '<span class="icon-fallback" aria-hidden="true">' . $char . '</span>';
+    }
+}
 ?>
 </main>
 
@@ -21,8 +40,8 @@ $storeConfig = $config;
                 <div class="social-buttons">
                     <?php if (isset($storeConfig['store']['social'])): ?>
                         <?php foreach ($storeConfig['store']['social'] as $platform => $url): ?>
-                            <a href="<?php echo htmlspecialchars($url); ?>" target="_blank" class="social-btn <?php echo $platform; ?>">
-                                <i class="fab fa-<?php echo $platform; ?>"></i>
+                            <a href="<?php echo htmlspecialchars($url); ?>" target="_blank" rel="noopener" class="social-btn <?php echo htmlspecialchars($platform); ?>">
+                                <?php echo mp_render_icon($platform); ?>
                                 <span><?php echo ucfirst($platform); ?></span>
                             </a>
                         <?php endforeach; ?>
@@ -46,8 +65,8 @@ $storeConfig = $config;
             <div class="social-floating">
                 <?php if (isset($storeConfig['store']['social'])): ?>
                     <?php foreach ($storeConfig['store']['social'] as $platform => $url): ?>
-                        <a href="<?php echo htmlspecialchars($url); ?>" target="_blank" class="float-btn <?php echo $platform; ?>">
-                            <i class="fab fa-<?php echo $platform; ?>"></i>
+                        <a href="<?php echo htmlspecialchars($url); ?>" target="_blank" rel="noopener" class="float-btn <?php echo htmlspecialchars($platform); ?>">
+                            <?php echo mp_render_icon($platform); ?>
                         </a>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -207,7 +226,11 @@ $storeConfig = $config;
 }
 </style>
 
-<script src="https://kit.fontawesome.com/<?php echo FONTAWESOME_KIT; ?>.js" crossorigin="anonymous"></script>
+<?php if (defined('FONTAWESOME_KIT') && FONTAWESOME_KIT): ?>
+<script src="https://kit.fontawesome.com/<?php echo htmlspecialchars(FONTAWESOME_KIT, ENT_QUOTES, 'UTF-8'); ?>.js" crossorigin="anonymous"></script>
+<?php endif; ?>
+<!-- Bootstrap JS (bundle incluye Popper) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
 </html>
