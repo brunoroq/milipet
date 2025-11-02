@@ -1,0 +1,96 @@
+<!-- Test de búsqueda MiliPet -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Búsqueda - MiliPet</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .test-case { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 8px; }
+        .test-case h3 { margin: 0 0 10px 0; color: #2E6B30; }
+        .test-case code { background: #fff; padding: 2px 6px; border-radius: 4px; }
+        .result { margin-top: 10px; }
+        .success { color: #2E6B30; font-weight: bold; }
+        .fail { color: #c62828; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🐾 Test de Búsqueda MiliPet</h1>
+    <p>Prueba estos casos para verificar que la búsqueda funciona correctamente:</p>
+
+    <div class="test-case">
+        <h3>Test 1: Búsqueda case-insensitive básica</h3>
+        <p>Buscar: <code>xd</code> → Debe encontrar: <code>XDXDDD</code></p>
+    <a href="public/?r=catalog&q=xd" target="_blank">🔗 Probar búsqueda "xd"</a>
+    </div>
+
+    <div class="test-case">
+        <h3>Test 2: Búsqueda inversa</h3>
+        <p>Buscar: <code>XDXDDD</code> → Debe encontrar: <code>xd</code> o <code>XDXDDD</code></p>
+    <a href="public/?r=catalog&q=XDXDDD" target="_blank">🔗 Probar búsqueda "XDXDDD"</a>
+    </div>
+
+    <div class="test-case">
+        <h3>Test 3: Búsqueda parcial</h3>
+        <p>Buscar: <code>ali</code> → Debe encontrar: <code>Alimento</code>, <code>ALIMENTO Premium</code>, etc.</p>
+    <a href="public/?r=catalog&q=ali" target="_blank">🔗 Probar búsqueda "ali"</a>
+    </div>
+
+    <div class="test-case">
+        <h3>Test 4: Búsqueda con mayúsculas</h3>
+        <p>Buscar: <code>ALIMENTO</code> → Debe encontrar: <code>alimento</code>, <code>Alimento Premium</code>, etc.</p>
+    <a href="public/?r=catalog&q=ALIMENTO" target="_blank">🔗 Probar búsqueda "ALIMENTO"</a>
+    </div>
+
+    <div class="test-case">
+        <h3>Test 5: Búsqueda vacía</h3>
+        <p>No buscar nada → Debe mostrar todos los productos activos</p>
+    <a href="public/?r=catalog" target="_blank">🔗 Probar catálogo sin filtros</a>
+    </div>
+
+    <div class="test-case">
+        <h3>Test 6: Sin resultados</h3>
+        <p>Buscar: <code>xyz123abc</code> → Debe mostrar mensaje "No se encontraron resultados" + sugerencias</p>
+    <a href="public/?r=catalog&q=xyz123abc" target="_blank">🔗 Probar búsqueda sin resultados</a>
+    </div>
+
+    <div class="test-case">
+        <h3>Test 7: Búsqueda + filtro categoría</h3>
+        <p>Buscar: <code>collar</code> + Categoría → Debe filtrar correctamente</p>
+    <a href="public/?r=catalog&q=collar&cid=2" target="_blank">🔗 Probar búsqueda con filtros</a>
+    </div>
+
+    <hr style="margin: 30px 0;">
+    
+    <h2>📋 Checklist de validación:</h2>
+    <ul>
+        <li>✅ "xd" encuentra "XDXDDD" (case-insensitive)</li>
+        <li>✅ "XDXDDD" encuentra productos con esas letras</li>
+        <li>✅ Búsqueda parcial funciona (coincidencias en medio)</li>
+        <li>✅ Sin resultados muestra mensaje + sugerencias</li>
+        <li>✅ Filtros vacíos ("", "0") son ignorados</li>
+        <li>✅ No hay errores SQL de parámetros</li>
+        <li>✅ Input mantiene el texto buscado</li>
+        <li>✅ Botón "Limpiar filtros" aparece cuando hay filtros</li>
+    </ul>
+
+    <h2>🔍 Verificar logs (desarrollo):</h2>
+    <p>En localhost, revisa los logs de PHP para ver:</p>
+    <pre style="background: #333; color: #0f0; padding: 15px; border-radius: 8px; overflow-x: auto;">
+[SEARCH SQL] ... AND (LOWER(p.name) LIKE LOWER(:q) OR LOWER(p.description) LIKE LOWER(:q)) ...
+[SEARCH PARAMS] {":q":"%xd%"}
+    </pre>
+    
+    <h2>✅ Método actualizado: LOWER()</h2>
+    <p>Ahora usamos <code>LOWER()</code> en lugar de <code>COLLATE</code>:</p>
+    <ul>
+        <li>✅ Más portable (funciona en Windows, Linux, hosting)</li>
+        <li>✅ No depende de configuraciones del servidor</li>
+        <li>✅ Garantiza coincidencia case-insensitive 100%</li>
+        <li>✅ Compatible con todas las versiones de MySQL/MariaDB</li>
+    </ul>
+
+    <hr style="margin: 30px 0;">
+    <p><a href="public/?r=catalog">← Volver al catálogo</a></p>
+</body>
+</html>

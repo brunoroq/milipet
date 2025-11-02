@@ -13,6 +13,14 @@ if (empty($_SESSION['csrf'])) {
 }
 require_once __DIR__ . '/../config/db.php';
 
+// Si viene ?q=... pero no hay ruta, enviamos al catálogo
+if (!isset($_GET['r']) && isset($_GET['q'])) {
+    $qs = $_GET;
+    $qs['r'] = 'catalog';
+    header('Location: ?' . http_build_query($qs));
+    exit;
+}
+
 function render($view, $vars = []) {
     // Si la vista es admin, utilizar header específico y proteger el acceso
     $isAdmin = strpos($view, 'admin/') === 0;

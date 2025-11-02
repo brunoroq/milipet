@@ -7,7 +7,7 @@
 </div>
 <?php endif; ?>
 
-<form method="post" action="?r=auth/login">
+<form method="post" action="<?= url(['r' => 'auth/login']) ?>">
     <label>
         Email
         <input type="email" name="email" required autofocus>

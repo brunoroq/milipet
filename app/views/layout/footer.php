@@ -24,45 +24,67 @@ if (!function_exists('mp_render_icon')) {
 </main>
 
 <footer class="footer">
-    <div class="container">
-        <div class="footer-content">
-            <div class="footer-info">
-                <h3><?php echo $storeConfig['store']['name'] ?? 'MiliPet'; ?></h3>
-                <p>Tu tienda de mascotas en Maipú</p>
-                <p class="address"><?php echo $storeConfig['store']['address'] ?? ''; ?></p>
-                <p class="hours">Lunes a Viernes: <?php echo $storeConfig['store']['business_hours']['monday_friday'] ?? ''; ?></p>
-                <p class="hours">Sábado: <?php echo $storeConfig['store']['business_hours']['saturday'] ?? ''; ?></p>
-                <p class="hours">Domingo: <?php echo $storeConfig['store']['business_hours']['sunday'] ?? ''; ?></p>
-            </div>
-            
-            <div class="footer-social">
-                <h3>Síguenos y Contáctanos</h3>
-                <div class="social-buttons">
-                    <?php if (isset($storeConfig['store']['social'])): ?>
-                        <?php foreach ($storeConfig['store']['social'] as $platform => $url): ?>
-                            <a href="<?php echo htmlspecialchars($url); ?>" target="_blank" rel="noopener" class="social-btn <?php echo htmlspecialchars($platform); ?>">
-                                <?php echo mp_render_icon($platform); ?>
-                                <span><?php echo ucfirst($platform); ?></span>
-                            </a>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
-            </div>
+  <div class="footer-container">
+    <div class="footer-column footer-info">
+      <h3><?= htmlspecialchars(STORE_NAME) ?></h3>
+      <p class="footer-address">
+        <?= htmlspecialchars(STORE_LOCATION_NOTE) ?><br>
+        <?= htmlspecialchars(STORE_ADDRESS_TEXT) ?>
+      </p>
+      <div class="footer-hours">
+        <strong>Horario de atención</strong>
+        <ul>
+          <li><?= htmlspecialchars(STORE_HOURS_WEEKDAYS) ?></li>
+          <li><?= htmlspecialchars(STORE_HOURS_SATURDAY) ?></li>
+        </ul>
+      </div>
+    </div>
 
-            <div class="footer-links">
-                <h3>Enlaces</h3>
-                <ul>
-                    <li><a href="?r=catalog">Catálogo</a></li>
-                    <li><a href="?r=static/about">Quiénes Somos</a></li>
-                    <li><a href="?r=static/adoptions">Adopciones</a></li>
-                    <li><a href="?r=static/policies">Políticas</a></li>
-                </ul>
-            </div>
+    <div class="footer-column footer-contact">
+      <h3>Síguenos y Contáctanos</h3>
+      <ul>
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">WhatsApp</a></li>
+        <li><a href="mailto:contacto@milipet.cl">contacto@milipet.cl</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-column footer-links">
+      <h3>Enlaces</h3>
+      <ul>
+        <li><a href="?r=catalog">Catálogo</a></li>
+        <li><a href="?r=about">Quiénes Somos</a></li>
+        <li><a href="?r=adoptions">Adopciones</a></li>
+        <li><a href="?r=policies">Políticas</a></li>
+      </ul>
+    </div>
+  </div>
         </div>
         
-        <div class="footer-bottom">
-            <small>© <?php echo date('Y'); ?> MiliPet — Todos los derechos reservados</small>
-            <div class="social-floating">
+                <?php
+                    $coords = defined('STORE_COORDS') ? STORE_COORDS : null;
+                    $addr   = defined('STORE_ADDRESS_TEXT') ? STORE_ADDRESS_TEXT : 'Maipú, Región Metropolitana';
+                    $qParam = $coords ? $coords : $addr;
+                ?>
+                <div class="footer-map-full" aria-label="Mapa con la ubicación de la tienda">
+                    <iframe
+                        src="https://www.google.com/maps?q=<?= urlencode($qParam) ?>&z=16&hl=es&output=embed"
+                        loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+
+                <div class="footer-map-meta">
+                    <span class="footer-map-address"><?= htmlspecialchars($addr) ?></span>
+                    <a class="footer-map-button"
+                         href="https://www.google.com/maps/search/?api=1&query=<?= urlencode($qParam) ?>"
+                         target="_blank" rel="noopener">
+                        Abrir en Google Maps
+                    </a>
+                </div>
+
+                <div class="footer-bottom">
+                        <small>© <?php echo date('Y'); ?> MiliPet — Todos los derechos reservados</small>
+                        <div class="social-floating">
                 <?php if (isset($storeConfig['store']['social'])): ?>
                     <?php foreach ($storeConfig['store']['social'] as $platform => $url): ?>
                         <a href="<?php echo htmlspecialchars($url); ?>" target="_blank" rel="noopener" class="float-btn <?php echo htmlspecialchars($platform); ?>">
@@ -231,6 +253,6 @@ if (!function_exists('mp_render_icon')) {
 <?php endif; ?>
 <!-- Bootstrap JS (bundle incluye Popper) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="assets/js/app.js"></script>
+<script src="<?= BASE_URL ?>assets/js/app.js"></script>
 </body>
 </html>

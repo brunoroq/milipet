@@ -14,7 +14,12 @@
                 <!-- Aquí se podría agregar un formulario de notificación cuando haya stock -->
             </div>
         <?php else: ?>
-            <p class="stock-status in">Stock disponible: <?php echo (int)$product['stock']; ?> unidades</p>
+            <?php
+            $STORE_ADDRESS = defined('STORE_ADDRESS') ? STORE_ADDRESS : 'Maipú, Chile';
+            $PICKUP_MSG    = defined('STORE_PICKUP_MESSAGE') ? STORE_PICKUP_MESSAGE : 'Retiro en tienda Gratis • Disponible hoy';
+            ?>
+            <span class="badge-stock">Stock disponible: <?php echo (int)$product['stock']; ?> unidades</span>
+            <p class="muted"><?php echo htmlspecialchars($PICKUP_MSG); ?> — <?php echo htmlspecialchars($STORE_ADDRESS); ?></p>
             <div class="product-actions">
                 <div class="delivery-options">
                     <h3>Opciones de entrega</h3>
@@ -25,16 +30,18 @@
                                 <i class="fas fa-store"></i>
                                 <div class="option-text">
                                     <strong>Retiro en tienda</strong>
-                                    <span>Gratis • Disponible hoy</span>
+                                    <span><?php echo htmlspecialchars($PICKUP_MSG); ?></span>
                                 </div>
                             </div>
                         </label>
                         <div class="store-info">
-                            <p><i class="fas fa-map-marker-alt"></i> <?php echo STORE_ADDRESS; ?></p>
+                            <p><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($STORE_ADDRESS); ?></p>
                             <p><i class="fas fa-clock"></i> Horario:</p>
-                            <?php foreach (STORE_HOURS as $day => $hours): ?>
-                                <p class="store-hours"><?php echo $day; ?>: <?php echo $hours; ?></p>
-                            <?php endforeach; ?>
+                            <?php if (defined('STORE_HOURS') && is_array(STORE_HOURS)): ?>
+                                <?php foreach (STORE_HOURS as $day => $hours): ?>
+                                    <p class="store-hours"><?php echo htmlspecialchars($day); ?>: <?php echo htmlspecialchars($hours); ?></p>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

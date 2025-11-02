@@ -14,32 +14,65 @@ class Product {
         return in_array(strtolower($col), $cache, true);
     }
 
-    public static function search($q = '', $category_id = null, $species = null, $include_out_of_stock = false) {
-        $pdo = db_connect();
-        $sql = "SELECT DISTINCT p.*, c.name AS category_name 
-                FROM products p 
-                LEFT JOIN categories c ON c.id=p.category_id
-                LEFT JOIN product_species ps ON ps.product_id = p.id
-                LEFT JOIN species s ON s.id = ps.species_id
-                WHERE p.is_active=1" . 
-                (!$include_out_of_stock ? " AND p.stock > 0" : "");
-        $params = [];
-        if ($q !== '') {
-            $sql .= " AND (p.name LIKE :q OR p.description LIKE :q)";
-            $params[':q'] = "%$q%";
+    public static function search($query = '', $category_id = null, $species_id = null, $in_stock = false) {
+        try {
+            $pdo = db_connect();
+            
+            // Base query con WHERE 1=1 para facilitar concatenación
+            $sql = "SELECT DISTINCT p.*, c.name AS category_name 
+                    FROM products p 
+                    LEFT JOIN categories c ON c.id = p.category_id
+                    LEFT JOIN product_species ps ON ps.product_id = p.id
+                    LEFT JOIN species s ON s.id = ps.species_id
+                    WHERE 1=1";
+            
+            $params = [];
+            
+            // Filtro: solo productos activos
+            $sql .= " AND p.is_active = 1";
+
+            // Filtro: stock disponible (true => solo stock)
+            if ($in_stock) {
+                $sql .= " AND p.stock > 0";
+            }
+
+            // Filtro: búsqueda por texto (insensible a mayúsculas/minúsculas)
+            $query = trim((string)$query);
+            if ($query !== '') {
+                $sql .= " AND (LOWER(p.name) LIKE LOWER(?) OR LOWER(p.description) LIKE LOWER(?))";
+                $like = "%{$query}%";
+                $params[] = $like;
+                $params[] = $like;
+            }
+            
+            // Filtro: categoría
+            if ($category_id !== null) {
+                $sql .= " AND p.category_id = ?";
+                $params[] = (int)$category_id;
+            }
+            
+            // Filtro: especie (por ID en tabla puente)
+            if ($species_id !== null) {
+                $sql .= " AND ps.species_id = ?";
+                $params[] = (int)$species_id;
+            }
+            
+            $sql .= " ORDER BY p.name ASC";
+            
+            // DEBUG opcional en local (comentar en producción)
+            if (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
+                error_log('[SEARCH SQL] ' . $sql);
+                error_log('[SEARCH PARAMS] ' . json_encode($params));
+            }
+            
+            $st = $pdo->prepare($sql);
+            $st->execute($params);
+            return $st->fetchAll(PDO::FETCH_ASSOC);
+            
+        } catch (PDOException $e) {
+            error_log("Error en Product::search() - " . $e->getMessage());
+            return [];
         }
-        if ($category_id) {
-            $sql .= " AND p.category_id=:cid";
-            $params[':cid'] = $category_id;
-        }
-        if ($species) {
-            $sql .= " AND s.name=:sp";
-            $params[':sp'] = $species;
-        }
-        $sql .= " ORDER BY p.created_at DESC";
-        $st = $pdo->prepare($sql);
-        $st->execute($params);
-        return $st->fetchAll();
     }
 
     public static function find($id) {
@@ -156,5 +189,26 @@ class Product {
                             ORDER BY p.stock ASC");
         $st->execute([':threshold' => $threshold]);
         return $st->fetchAll();
+    }
+
+    /**
+     * Get featured products for suggestions (when no search results)
+     */
+    public static function getFeatured($limit = 4) {
+        try {
+            $pdo = db_connect();
+            $st = $pdo->prepare("SELECT p.*, c.name AS category_name 
+                                FROM products p 
+                                LEFT JOIN categories c ON c.id = p.category_id 
+                                WHERE p.is_active = 1 AND p.stock > 0 
+                                ORDER BY RAND() 
+                                LIMIT :limit");
+            $st->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+            $st->execute();
+            return $st->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error en Product::getFeatured() - " . $e->getMessage());
+            return [];
+        }
     }
 }
