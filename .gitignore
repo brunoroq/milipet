@@ -1,7 +1,22 @@
 # Archivos temporales y config local
 config/local.php
-database/*.sql
 public/assets/img/*.png
 *.zip
 .DS_Store
 Thumbs.db
+# archivos locales
+.env.local
+docker-compose.override.yml
+
+# Environment file for local overrides (keep out of repo)
+.env
+
+# Dependencias y editor configs
+vendor/
+.vscode/
+.idea/
+
+# Ignorar backups de base de datos
+backup/
+database/backup/
+

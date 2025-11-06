@@ -1,0 +1,52 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: php-apache
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    volumes:
+      # Montamos todo el proyecto en /var/www/milipet y usamos /var/www/milipet/public como DocumentRoot
+      - ./:/var/www/milipet
+    depends_on:
+      - db
+    environment:
+      APACHE_DOCUMENT_ROOT: /var/www/milipet/public
+      # Variables para la conexión a la base de datos (el servicio `db` está en la misma red de compose)
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-milipet_db}
+      DB_USER: ${DB_USER:-appuser}
+      DB_PASS: ${DB_PASS:-apppass}
+    # Descomenta si tienes problemas de permisos con archivos generados
+    # user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+
+  db:
+    image: mariadb:11
+    container_name: mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS:-root}
+      MYSQL_DATABASE: ${DB_NAME:-milipet_db}
+      MYSQL_USER: ${DB_USER:-appuser}
+      MYSQL_PASSWORD: ${DB_PASS:-apppass}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: phpmyadmin
+    depends_on:
+      - db
+    ports:
+      - "${PMA_PORT:-8081}:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: ${DB_USER:-appuser}
+      PMA_PASSWORD: ${DB_PASS:-apppass}
+
+volumes:
+  dbdata:
