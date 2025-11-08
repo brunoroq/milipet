@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Admin - MiliPet</title>
   <meta name="robots" content="noindex,nofollow">
-  <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
+  <link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
 </head>
 <body>
 <header class="navbar"><div class="container"><a class="brand" href="<?= url(['r' => 'admin/dashboard']) ?>">MiliPet</a><nav>

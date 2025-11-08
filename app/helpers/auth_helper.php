@@ -4,46 +4,41 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 function is_authenticated() {
-    // Verificar si hay una sesión activa y no ha expirado
-    if (!isset($_SESSION['admin_id']) || !isset($_SESSION['last_activity'])) {
-        return false;
-    }
-
-    // Verificar si la sesión ha expirado (30 minutos)
-    $expire_time = 30 * 60; // 30 minutos en segundos
-    if (time() - $_SESSION['last_activity'] > $expire_time) {
+    // Compatibilidad: aceptar uid/role nuevos o admin_id legacy
+    $uid = $_SESSION['uid'] ?? ($_SESSION['admin_id'] ?? null);
+    if (!$uid) { return false; }
+    $last = $_SESSION['last_activity'] ?? null;
+    $expire = 30 * 60;
+    if (!$last || (time() - $last) > $expire) {
         logout();
         return false;
     }
-
-    // Actualizar timestamp de última actividad
     $_SESSION['last_activity'] = time();
     return true;
 }
 
-function login($admin) {
-    $_SESSION['admin_id'] = $admin['id'];
-    $_SESSION['admin_name'] = $admin['name'];
+function login($user) {
+    // $user puede venir de tabla users o admins (legacy)
+    $_SESSION['uid'] = $user['id'];
+    if (!empty($user['name'])) { $_SESSION['admin_name'] = $user['name']; }
+    if (!empty($user['role'])) { $_SESSION['role'] = $user['role']; }
+    else if (!isset($_SESSION['role'])) { $_SESSION['role'] = 'admin'; }
     $_SESSION['last_activity'] = time();
 }
 
 function logout() {
-    // Destruir todas las variables de sesión
-    $_SESSION = array();
-
-    // Destruir la cookie de sesión si existe
+    $_SESSION = [];
     if (isset($_COOKIE[session_name()])) {
-        setcookie(session_name(), '', time() - 3600, '/');
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
     }
-
-    // Destruir la sesión
     session_destroy();
 }
 
 function require_auth() {
     if (!is_authenticated()) {
         $_SESSION['flash_error'] = 'Debe iniciar sesión para acceder al panel de administración';
-        header('Location: ?r=auth/login');
+        header('Location: ' . (function_exists('url') ? url(['r'=>'auth/admin_login']) : '?r=auth/admin_login'));
         exit;
     }
 }

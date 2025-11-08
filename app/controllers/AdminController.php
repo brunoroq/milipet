@@ -5,7 +5,20 @@ require_once __DIR__ . '/../helpers/auth_helper.php';
 
 class AdminController {
   public function __construct() {
-    require_auth(); // Verificar autenticación en todas las acciones del AdminController
+    // Requiere rol admin/editor
+    if (function_exists('requireRole')) { requireRole(['admin','editor']); }
+  }
+  
+  // Normaliza nombre de archivo: translitera, minúsculas, reemplaza caract. no permitidos, comprime guiones
+  private function sanitize_file_name(string $name): string {
+    if (function_exists('iconv')) {
+      $converted = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name);
+      if ($converted !== false) { $name = $converted; }
+    }
+    $name = strtolower($name);
+    $name = preg_replace('/[^a-z0-9\._-]/', '-', $name);
+    $name = preg_replace('/-+/', '-', $name);
+    return trim($name, '-');
   }
   
   public function campaigns() {
@@ -48,7 +61,7 @@ class AdminController {
         return;
     }
 
-    // Manejo de subida de imagen
+  // Manejo de subida de imagen
     if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] !== UPLOAD_ERR_NO_FILE) {
         $file = $_FILES['image_file'];
         if ($file['error'] === UPLOAD_ERR_OK) {
@@ -60,12 +73,13 @@ class AdminController {
                 } else {
                     $mime = mime_content_type($file['tmp_name']);
                 }
-                $allowed = ['image/jpeg'=>'jpg', 'image/png'=>'png'];
+        $allowed = ['image/jpeg'=>'jpg', 'image/png'=>'png', 'image/webp'=>'webp'];
                 if (isset($allowed[$mime])) {
                     $ext = $allowed[$mime];
-                    $safe = preg_replace('/[^a-zA-Z0-9_-]+/', '-', strtolower(pathinfo($file['name'], PATHINFO_FILENAME)));
-                    $unique = $safe.'-'.bin2hex(random_bytes(4)).'.'.$ext;
-                    $dir = __DIR__ . '/../../public/assets/img';
+          $baseName = pathinfo($file['name'], PATHINFO_FILENAME);
+          $safe = $this->sanitize_file_name($baseName);
+          $unique = $safe.'-'.bin2hex(random_bytes(4)).'.'.$ext;
+          $dir = (defined('PUBLIC_PATH') ? PUBLIC_PATH : (__DIR__ . '/../../public')).'/assets/img';
                     if (!is_dir($dir)) {
                         @mkdir($dir, 0775, true);
                     }
@@ -74,7 +88,8 @@ class AdminController {
                         if (!empty($data['id']) && !empty($_POST['current_image_url'])) {
                             $prev = $_POST['current_image_url'];
                             if (strpos($prev, 'assets/img/') === 0) {
-                                $prevPath = __DIR__.'/../../public/'.$prev;
+                $prevPathBase = defined('PUBLIC_PATH') ? PUBLIC_PATH : (__DIR__.'/../../public');
+                $prevPath = rtrim($prevPathBase, '/').'/'.$prev;
                                 if (is_file($prevPath)) {
                                     @unlink($prevPath);
                                 }
@@ -123,8 +138,10 @@ class AdminController {
 
   // Verifica token CSRF para peticiones POST
   private function checkCsrf() {
+    if (function_exists('csrf_check')) { csrf_check(); return; }
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-      if (empty($_POST['csrf']) || !hash_equals($_SESSION['csrf'] ?? '', $_POST['csrf'])) {
+      $t = $_POST['_csrf'] ?? ($_POST['csrf'] ?? '');
+      if (empty($t) || !hash_equals($_SESSION['_csrf'] ?? ($_SESSION['csrf'] ?? ''), $t)) {
         http_response_code(400);
         exit('CSRF token inválido');
       }
@@ -196,18 +213,21 @@ class AdminController {
         if ($file['size'] <= $max) {
           if (function_exists('finfo_open')) { $finfo=new finfo(FILEINFO_MIME_TYPE); $mime=$finfo->file($file['tmp_name']); }
           else { $mime = mime_content_type($file['tmp_name']); }
-          $allowed=['image/jpeg'=>'jpg','image/png'=>'png'];
+          $allowed=['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
           if (isset($allowed[$mime])) {
             $ext=$allowed[$mime];
-            $safe=preg_replace('/[^a-zA-Z0-9_-]+/','-', strtolower(pathinfo($file['name'], PATHINFO_FILENAME)));
-            $unique=$safe.'-'.bin2hex(random_bytes(4)).'.'.$ext;
-            $dir=__DIR__ . '/../../public/assets/img'; if(!is_dir($dir)){ @mkdir($dir, 0775, true); }
-            $target=$dir.'/'.$unique;
+            $baseName = pathinfo($file['name'], PATHINFO_FILENAME);
+            $safe = $this->sanitize_file_name($baseName);
+            $unique = $safe.'-'.bin2hex(random_bytes(4)).'.'.$ext;
+            $dir = (defined('PUBLIC_PATH') ? PUBLIC_PATH : (__DIR__ . '/../../public')).'/assets/img';
+            if(!is_dir($dir)){ @mkdir($dir, 0775, true); }
+            $target = $dir.'/'.$unique;
             if (move_uploaded_file($file['tmp_name'],$target)) {
               if (!empty($data['id']) && !empty($_POST['current_image_url'])) {
                 $prev=$_POST['current_image_url'];
                 if (strpos($prev,'assets/img/')===0) {
-                  $prevPath=__DIR__.'/../../public/'.$prev; if(is_file($prevPath)){ @unlink($prevPath); }
+                  $prevPathBase = defined('PUBLIC_PATH') ? PUBLIC_PATH : (__DIR__.'/../../public');
+                  $prevPath = rtrim($prevPathBase,'/').'/'.$prev; if(is_file($prevPath)){ @unlink($prevPath); }
                 }
               }
               $data['image_url']='assets/img/'.$unique;

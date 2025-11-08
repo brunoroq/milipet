@@ -31,11 +31,163 @@ if (!defined('BASE_URL')) {
     define('BASE_URL', $scheme . '://' . $host . ($base ? $base . '/' : '/'));
 }
 
+// Ruta absoluta al directorio public (para verificar existencia de archivos)
+if (!defined('PUBLIC_PATH')) {
+    $publicPath = realpath(__DIR__ . '/../public');
+    define('PUBLIC_PATH', $publicPath ?: (__DIR__ . '/../public'));
+}
+
+// Helper asset() para construir URLs de recursos evitando dobles /public
+if (!function_exists('asset')) {
+    function asset(string $path): string {
+        return rtrim(BASE_URL, '/') . '/' . ltrim($path, '/');
+    }
+}
+
 // --- Helper URL ---
 if (!function_exists('url')) {
     function url(array $params = []): string {
         $q = http_build_query($params);
         return BASE_URL . ($q ? ('?' . $q) : '');
+    }
+}
+
+// --- Flash messages ---
+if (!function_exists('flash')) {
+    function flash(string $key, ?string $val=null) {
+        if ($val === null) { $v = $_SESSION['_flash'][$key] ?? null; unset($_SESSION['_flash'][$key]); return $v; }
+        $_SESSION['_flash'][$key] = $val;
+        return null;
+    }
+}
+
+// --- CSRF token y verificación (acepta compatibilidad con 'csrf') ---
+if (empty($_SESSION['_csrf'])) { $_SESSION['_csrf'] = bin2hex(random_bytes(16)); }
+if (!function_exists('csrf_token')) {
+    function csrf_token(): string { return $_SESSION['_csrf']; }
+}
+if (!function_exists('csrf_check')) {
+    function csrf_check() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $t = $_POST['_csrf'] ?? ($_POST['csrf'] ?? '');
+            if (!hash_equals($_SESSION['_csrf'], $t)) {
+                http_response_code(400);
+                exit('CSRF token inválido');
+            }
+        }
+    }
+}
+
+// --- Guard para roles ---
+if (!function_exists('requireRole')) {
+    function requireRole(array $allowed) {
+        $role = $_SESSION['role'] ?? null;
+        $uid  = $_SESSION['uid'] ?? null;
+        if (!$uid || !$role || !in_array($role, $allowed, true)) {
+            flash('auth','Debes iniciar sesión de administrador.');
+            header('Location: ' . url(['r'=>'auth/admin_login']));
+            exit;
+        }
+    }
+}
+
+// --- Remember me (selector + validator) ---
+if (!defined('REMEMBER_COOKIE_NAME')) {
+    define('REMEMBER_COOKIE_NAME', 'mp_remember');
+}
+
+if (!function_exists('mp_set_remember_token')) {
+    function mp_set_remember_token(int $userId, int $days = 30): void {
+        $selector = bin2hex(random_bytes(16));
+        $validator = bin2hex(random_bytes(32)); // guardaremos hash en DB
+        $hash = hash('sha256', $validator);
+        $expires = (new DateTime('+'.$days.' days'))->format('Y-m-d H:i:s');
+
+        // Guardar en DB
+        $db = class_exists('Database') ? Database::getInstance()->getConnection() : (function_exists('db_connect') ? db_connect() : null);
+        if ($db instanceof PDO) {
+            $stmt = $db->prepare('INSERT INTO remember_tokens (user_id, selector, hashed_validator, expires_at) VALUES (?,?,?,?)');
+            $stmt->execute([$userId, $selector, $hash, $expires]);
+        }
+
+        // Cookie segura
+        $cookieVal = $selector.':'.$validator;
+        $params = [
+            'expires'  => time() + ($days * 86400),
+            'path'     => '/',
+            'secure'   => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ];
+        setcookie(REMEMBER_COOKIE_NAME, $cookieVal, $params);
+    }
+}
+
+if (!function_exists('mp_clear_remember_cookie')) {
+    function mp_clear_remember_cookie(): void {
+        if (!empty($_COOKIE[REMEMBER_COOKIE_NAME])) {
+            $params = session_get_cookie_params();
+            setcookie(REMEMBER_COOKIE_NAME, '', time() - 42000, '/');
+            unset($_COOKIE[REMEMBER_COOKIE_NAME]);
+        }
+    }
+}
+
+if (!function_exists('mp_forget_token_by_selector')) {
+    function mp_forget_token_by_selector(string $selector): void {
+        $db = class_exists('Database') ? Database::getInstance()->getConnection() : (function_exists('db_connect') ? db_connect() : null);
+        if ($db instanceof PDO) {
+            $stmt = $db->prepare('DELETE FROM remember_tokens WHERE selector=?');
+            $stmt->execute([$selector]);
+        }
+    }
+}
+
+if (!function_exists('mp_remember_autologin')) {
+    function mp_remember_autologin(): void {
+        if (!empty($_SESSION['uid'])) { return; }
+        $val = $_COOKIE[REMEMBER_COOKIE_NAME] ?? '';
+        if (!$val || strpos($val, ':') === false) { return; }
+        [$selector, $validator] = explode(':', $val, 2);
+        if (!$selector || !$validator) { return; }
+
+        $db = class_exists('Database') ? Database::getInstance()->getConnection() : (function_exists('db_connect') ? db_connect() : null);
+        if (!($db instanceof PDO)) { return; }
+
+        $stmt = $db->prepare('SELECT rt.user_id, rt.hashed_validator, rt.expires_at, u.role, u.is_active FROM remember_tokens rt JOIN users u ON u.id=rt.user_id WHERE selector=? LIMIT 1');
+        $stmt->execute([$selector]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) { mp_clear_remember_cookie(); return; }
+        if (strtotime($row['expires_at']) < time() || empty($row['is_active'])) { mp_forget_token_by_selector($selector); mp_clear_remember_cookie(); return; }
+
+        $calc = hash('sha256', $validator);
+        if (!hash_equals($row['hashed_validator'], $calc)) {
+            // posible abuso: borrar token y cookie
+            mp_forget_token_by_selector($selector);
+            mp_clear_remember_cookie();
+            return;
+        }
+
+        // Rotar token al usarlo
+        mp_forget_token_by_selector($selector);
+        mp_set_remember_token((int)$row['user_id']);
+
+        // Iniciar sesión
+        session_regenerate_id(true);
+        $_SESSION['uid'] = (int)$row['user_id'];
+        $_SESSION['role'] = $row['role'] ?? 'admin';
+        $_SESSION['last_activity'] = time();
+    }
+}
+
+// Limpieza de tokens expirados (se puede llamar desde cron)
+if (!function_exists('mp_cleanup_expired_tokens')) {
+    function mp_cleanup_expired_tokens(): int {
+        $db = class_exists('Database') ? Database::getInstance()->getConnection() : (function_exists('db_connect') ? db_connect() : null);
+        if (!($db instanceof PDO)) { return 0; }
+        $stmt = $db->prepare('DELETE FROM remember_tokens WHERE expires_at < NOW()');
+        $stmt->execute();
+        return $stmt->rowCount();
     }
 }
 

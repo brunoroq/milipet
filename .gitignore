@@ -1,22 +1,30 @@
-# Archivos temporales y config local
+# === Archivos temporales y configuración local ===
 config/local.php
+
+# Archivos generados o temporales
 public/assets/img/*.png
 *.zip
 .DS_Store
 Thumbs.db
-# archivos locales
+
+# === Archivos locales de entorno ===
+.env
 .env.local
 docker-compose.override.yml
 
-# Environment file for local overrides (keep out of repo)
-.env
-
-# Dependencias y editor configs
+# === Dependencias y configuración de editor ===
 vendor/
 .vscode/
 .idea/
 
-# Ignorar backups de base de datos
+# === Ignorar backups de base de datos ===
 backup/
 database/backup/
 
+# === Logs y archivos de caché ===
+*.log
+*.tmp
+*.bak
+
+# === Otros ===
+# (agrega aquí lo que no quieras subir, ej: nodemodules si usas JS)

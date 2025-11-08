@@ -71,6 +71,29 @@ h5 { font-size: 1.125rem; }
 .icon-img { width: 18px; height: 18px; display: inline-block; vertical-align: -3px; }
 .icon-img-dark { filter: brightness(0) saturate(100%); }
 
+/* Header action icons */
+.header-icon { line-height: 1; display:inline-flex; align-items:center; justify-content:center; gap:.35rem; }
+.icon-bar .btn { padding: 8px 12px; }
+.count-badge { position:absolute; top:-6px; right:-6px; background:#dc3545; color:#fff; border-radius:999px; padding:1px 6px; font-size:12px; font-weight:700; }
+
+/* Search overlay */
+.search-overlay { position:fixed; top:0; left:0; right:0; height:70px; background:#2E6B30; display:none; z-index:1100; box-shadow:0 4px 12px rgba(0,0,0,.25); animation:fadeDown .25s ease; }
+.search-overlay.active { display:block; }
+.search-overlay-inner { height:100%; display:flex; align-items:center; justify-content:center; }
+.search-form { width:100%; max-width:760px; }
+.search-form .input-wrapper { position:relative; display:flex; align-items:center; background:#fff; border-radius:40px; padding:6px 20px; box-shadow:0 2px 8px rgba(0,0,0,.15); }
+.search-form i.fa-magnifying-glass { color:#2E6B30; font-size:1.1rem; margin-right:12px; }
+.search-input { flex:1; border:none; outline:none; font-size:1rem; padding:10px 4px; font-family:inherit; }
+.search-input::placeholder { color:#666; }
+.search-overlay .btn-close { position:absolute; right:14px; top:50%; transform:translateY(-50%); }
+@media (max-width:600px){ .search-form{ max-width:100%; } .search-form .input-wrapper{ padding:4px 12px; } }
+@keyframes fadeDown{ from{ opacity:0; transform:translateY(-10px);} to{ opacity:1; transform:translateY(0);} }
+/* Dim backdrop */
+.search-dim { position:fixed; inset:0; background:rgba(0,0,0,.35); opacity:0; pointer-events:none; z-index:1090; transition:opacity .25s ease; }
+.search-dim.active { opacity:1; pointer-events:auto; }
+
+body.search-open { overflow:hidden; }
+
 /* Grid */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin: var(--spacing-lg) 0; justify-content: center; }
 

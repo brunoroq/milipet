@@ -47,16 +47,28 @@
 
     <?php if (!empty($suggested ?? [])): ?>
         <div class="suggested-grid" style="
-                display:grid;
-                grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
-                gap:24px;
-                max-width:1000px;
-                margin:40px auto;
-            ">
+                    display:grid;
+                    grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
+                    gap:24px;
+                    max-width:1000px;
+                    margin:40px auto;
+                ">
             <?php foreach ($suggested as $s): ?>
                 <div class="product-card">
-                    <?php $img = $s['image_url'] ?? ''; $img = $img ?: (BASE_URL . 'assets/img/placeholder.png'); if (strpos($img, 'http') !== 0 && strpos($img, '//') !== 0) { $img = BASE_URL . ltrim($img, '/'); } ?>
-                    <img src="<?= htmlspecialchars($img, ENT_QUOTES, 'UTF-8') ?>"
+                        <?php
+                        $rel = $s['image_url'] ?? '';
+                        $rel = $rel ? str_replace('\\','/', strtolower($rel)) : '';
+                        $fs  = $rel ? (defined('PUBLIC_PATH') ? PUBLIC_PATH.'/' . ltrim($rel,'/') : null) : null;
+                        $placeholderCandidates = ['assets/img/placeholder.svg','assets/img/placeholder.png'];
+                        $chosenPlaceholder = null;
+                        foreach ($placeholderCandidates as $ph) {
+                            $phPath = (defined('PUBLIC_PATH') ? PUBLIC_PATH.'/' : '') . $ph;
+                            if (is_file($phPath)) { $chosenPlaceholder = $ph; break; }
+                        }
+                        if (!$chosenPlaceholder) { $chosenPlaceholder = 'assets/img/placeholder.svg'; }
+                        $src = ($fs && is_file($fs)) ? asset($rel) : asset($chosenPlaceholder);
+                        ?>
+                        <img src="<?= htmlspecialchars($src, ENT_QUOTES, 'UTF-8') ?>"
                          alt="<?= htmlspecialchars($s['name'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
                          style="width:100%;height:200px;object-fit:cover;border-radius:8px;">
                     <h4 style="margin-top:10px;"><?= htmlspecialchars($s['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></h4>
@@ -76,11 +88,31 @@
 <div class="grid">
     <?php foreach($products as $p): ?>
     <article class="card <?php echo ($p['stock'] <= 0 ? 'out-of-stock' : ''); ?>">
-        <?php $pimg = $p['image_url'] ?: ''; $pimg = $pimg ?: (BASE_URL . 'assets/img/placeholder.png'); if (strpos($pimg, 'http') !== 0 && strpos($pimg, '//') !== 0) { $pimg = BASE_URL . ltrim($pimg, '/'); } ?>
-        <img src="<?php echo htmlspecialchars($pimg); ?>" alt="<?php echo htmlspecialchars($p['name']); ?>">
+        <?php
+        $rel = $p['image_url'] ?? '';
+        $rel = $rel ? str_replace('\\','/', strtolower($rel)) : '';
+        $fs  = $rel ? (defined('PUBLIC_PATH') ? PUBLIC_PATH.'/' . ltrim($rel,'/') : null) : null;
+    $placeholderCandidates = ['assets/img/placeholder.svg','assets/img/placeholder.png'];
+        $chosenPlaceholder = null;
+        foreach ($placeholderCandidates as $ph) {
+            $phPath = (defined('PUBLIC_PATH') ? PUBLIC_PATH.'/' : '') . $ph;
+            if (is_file($phPath)) { $chosenPlaceholder = $ph; break; }
+        }
+        if (!$chosenPlaceholder) { $chosenPlaceholder = 'assets/img/placeholder.svg'; }
+        $src = ($fs && is_file($fs)) ? asset($rel) : asset($chosenPlaceholder);
+        ?>
+        <img src="<?php echo htmlspecialchars($src); ?>" alt="<?php echo htmlspecialchars($p['name']); ?>">
         <h3 class="card-title"><?php echo htmlspecialchars($p['name']); ?></h3>
         <p class="card-category muted"><?php echo htmlspecialchars($p['category_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?></p>
         <strong class="card-price">$<?php echo number_format($p['price'] ?? 0, 0, ',', '.'); ?></strong>
+        <div class="actions-inline" style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-outline btn-sm fav-btn" data-fav-id="<?= (int)$p['id'] ?>" onclick="toggleFav(<?= (int)$p['id'] ?>)" aria-pressed="false" title="Agregar a favoritos">
+                <i class="fa-regular fa-heart"></i>
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="addToCart(<?= (int)$p['id'] ?>)" title="Agregar al carrito">
+                <i class="fa-solid fa-cart-plus"></i>
+            </button>
+        </div>
         
         <?php if ($p['stock'] <= 0): ?>
             <p class="stock-status out">Sin stock</p>

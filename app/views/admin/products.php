@@ -1,5 +1,6 @@
 <?php ?><h1>Productos</h1>
 <form method="post" action="?r=admin/product/save" class="card p" enctype="multipart/form-data">
+  <input type="hidden" name="_csrf" value="<?php echo htmlspecialchars($_SESSION['_csrf'] ?? ($_SESSION['csrf'] ?? '')); ?>">
   <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
   <h2>Nuevo / Editar producto</h2>
   <input type="hidden" name="id" id="prod-id">
@@ -87,6 +88,7 @@
           <button class="btn-outline" onclick='prefill(<?php echo json_encode($p, JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP); ?>)'>Editar</button>
             <form method="post" action="?r=admin/product/delete" style="display:inline" onsubmit="return confirm('¿Eliminar?')">
               <input type="hidden" name="id" value="<?php echo $p['id']; ?>">
+              <input type="hidden" name="_csrf" value="<?php echo htmlspecialchars($_SESSION['_csrf'] ?? ($_SESSION['csrf'] ?? '')); ?>">
               <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
               <button class="btn-danger" type="submit">Eliminar</button>
             </form>

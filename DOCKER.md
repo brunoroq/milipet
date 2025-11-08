@@ -27,7 +27,7 @@ docker compose up --build -d
 4. Abre la aplicación en el navegador:
 
 - Público: http://localhost:8080/
-- Admin: http://localhost:8080/?r=auth/login
+- Admin: http://localhost:8080/?r=auth/admin_login
 
 Notas
 - Para desarrollo, el repo se monta como volumen dentro del contenedor en `/var/www/milipet` y

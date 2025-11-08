@@ -30,15 +30,67 @@ Sitio PHP para tienda de mascotas (catálogo, campañas/adopciones y panel admin
 
 5) Abre el sitio:
 	- Público: `http://localhost/milipet_site/public/`
-	- Administración: `http://localhost/milipet_site/public/?r=auth/login`
+	- Administración: `http://localhost/milipet_site/public/?r=auth/admin_login`
 
 ## Credenciales de administrador (por defecto)
 - Email: `admin@milipet.local`
 - Password: `Admin123!`
 
+Usuario admin por defecto (si lo creas con la migración):
+- Email: `admin@milipet.local`
+- Password inicial sugerida: `Admin123!` (cámbiala en producción)
+
 Si quieres cambiar la contraseña:
 1) Abre `http://localhost/milipet_site/public/assets/make_hash.php` para generar un hash nuevo.
-2) Copia el hash y actualiza el campo `password_hash` en la tabla `admins` (phpMyAdmin).
+2) Copia el hash y actualiza el campo `password_hash` en la tabla `users` (phpMyAdmin). Si aún usas tabla `admins`, aplica la migración de merge.
+
+### Migración merge de tabla legacy `admins` a `users`
+Si vienes de una versión anterior que tenía la tabla `admins`, ejecuta:
+
+1. Importa `database/migrations/2025_01_merge_admins_into_users.sql` en phpMyAdmin.
+2. Verifica que los registros estén en `users` con rol `admin`.
+3. (Opcional) Elimina la tabla legacy `admins` después de confirmar.
+
+### Migración de roles y activación de admin
+Para habilitar roles y acceso administrativo seguro, aplica la migración:
+
+1) Abre phpMyAdmin y selecciona la BD `milipet_db`.
+2) Ve a la pestaña SQL y pega el contenido de `database/migrations/2025_01_add_role_to_users.sql`:
+
+```
+ALTER TABLE users
+	ADD COLUMN role ENUM('admin','editor','user') NOT NULL DEFAULT 'user',
+	ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1;
+
+-- Opcional: setea a tu correo como admin (ajusta el email)
+UPDATE users SET role='admin', is_active=1 WHERE email='admin@milipet.local';
+```
+
+3) Ejecuta la consulta. Ahora podrás iniciar sesión en `?r=auth/admin_login` con ese usuario.
+
+### Recordarme (sesión persistente)
+- Requiere la tabla `remember_tokens` (importa `database/migrations/2025_11_add_remember_tokens.sql`).
+- En el login de admin, marca "Recordarme (30 días)". Se genera un token seguro (selector + validador) y se guarda en cookie HttpOnly con SameSite=Lax.
+- Al volver sin sesión activa, el sitio te reconocerá y rotará el token por seguridad.
+- Para cerrar sesión "global" en el navegador actual, usa "Salir" (borra la cookie y el token asociado). Para revocar todos los tokens, puedes limpiar la tabla `remember_tokens` en phpMyAdmin.
+
+### Carrito persistente por usuario
+- Requiere la tabla `user_carts` (importa `database/migrations/2025_11_add_user_carts.sql`).
+- Los usuarios con sesión activa (admin/editor) verán su carrito persistido en BD.
+- Sin sesión, el carrito sigue usando localStorage del navegador.
+- Al iniciar sesión, el carrito local se sincroniza automáticamente con el servidor vía endpoint `/api/cart_sync.php`.
+
+
+### Limpieza automática de tokens expirados
+Puedes automatizar la eliminación de tokens vencidos con el script CLI:
+
+`scripts/cleanup_tokens.php`
+
+Ejemplo de entrada en crontab (cada noche 03:15):
+```
+15 3 * * * /usr/bin/php /ruta/a/milipet/scripts/cleanup_tokens.php >> /ruta/a/milipet/var/log/cleanup_tokens.log 2>&1
+```
+El script imprime el número de tokens eliminados. Asegúrate que el usuario de cron tenga permisos de lectura sobre el proyecto.
 
 ## Subida de imágenes
 - Las imágenes se guardan en `public/assets/img/`.

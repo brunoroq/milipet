@@ -1,6 +1,19 @@
 <?php ?>
 <article class="detail">
-    <img src="<?php echo htmlspecialchars($product['image_url'] ?: 'assets/img/placeholder.png'); ?>">
+    <?php
+    $rel = $product['image_url'] ?? '';
+    $rel = $rel ? str_replace('\\','/', strtolower($rel)) : '';
+    $fs  = $rel ? (defined('PUBLIC_PATH') ? PUBLIC_PATH.'/' . ltrim($rel,'/') : null) : null;
+    $placeholderCandidates = ['assets/img/placeholder.svg','assets/img/placeholder.png'];
+    $chosenPlaceholder = null;
+    foreach ($placeholderCandidates as $ph) {
+        $phPath = (defined('PUBLIC_PATH') ? PUBLIC_PATH.'/' : '') . $ph;
+        if (is_file($phPath)) { $chosenPlaceholder = $ph; break; }
+    }
+    if (!$chosenPlaceholder) { $chosenPlaceholder = 'assets/img/placeholder.svg'; }
+    $src = ($fs && is_file($fs)) ? asset($rel) : asset($chosenPlaceholder);
+    ?>
+    <img src="<?php echo htmlspecialchars($src); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
     <div>
         <h1><?php echo htmlspecialchars($product['name']); ?></h1>
         <p class="muted"><?php echo htmlspecialchars($product['category_name'] ?? ''); ?></p>
@@ -50,6 +63,10 @@
                     <button class="btn purchase-btn" onclick="addToCart(<?php echo (int)$product['id']; ?>)">
                         <i class="fas fa-shopping-cart"></i>
                         Añadir al carrito
+                    </button>
+                    <button class="btn-outline purchase-btn" data-fav-id="<?= (int)$product['id'] ?>" onclick="toggleFav(<?= (int)$product['id'] ?>)" aria-pressed="false">
+                        <i class="fa-regular fa-heart"></i>
+                        Favorito
                     </button>
                     
                     <a class="btn-outline whatsapp-btn" target="_blank" 

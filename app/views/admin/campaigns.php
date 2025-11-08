@@ -3,6 +3,7 @@
     <h1>Campañas de Adopción</h1>
 
     <form method="post" action="?r=admin/campaign/save" class="card p" enctype="multipart/form-data">
+        <input type="hidden" name="_csrf" value="<?php echo htmlspecialchars($_SESSION['_csrf'] ?? ($_SESSION['csrf'] ?? '')); ?>">
         <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
         <h2>Nueva / Editar Campaña</h2>
         
@@ -99,6 +100,7 @@
                                   style="display:inline" 
                                   onsubmit="return confirm('¿Eliminar esta campaña?')">
                                 <input type="hidden" name="id" value="<?php echo $c['id']; ?>">
+                                <input type="hidden" name="_csrf" value="<?php echo htmlspecialchars($_SESSION['_csrf'] ?? ($_SESSION['csrf'] ?? '')); ?>">
                                 <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
                                 <button class="btn-danger" type="submit">Eliminar</button>
                             </form>

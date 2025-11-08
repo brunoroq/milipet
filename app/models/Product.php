@@ -211,4 +211,22 @@ class Product {
             return [];
         }
     }
+
+    /**
+     * Recuperar productos por lista de IDs (solo activos por defecto)
+     */
+    public static function findByIds(array $ids, bool $onlyActive = true): array {
+        $ids = array_filter(array_map('intval', $ids), fn($v) => $v > 0);
+        if (empty($ids)) return [];
+        $pdo = db_connect();
+        $in  = implode(',', array_fill(0, count($ids), '?'));
+        $sql = "SELECT p.*, c.name AS category_name FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE p.id IN ($in)";
+        if ($onlyActive) { $sql .= " AND p.is_active = 1"; }
+        $sql .= " ORDER BY FIELD(p.id, $in)"; // Mantener orden original
+        // FIELD necesita repetir los parámetros para mantener orden
+        $params = array_merge($ids, $ids);
+        $st = $pdo->prepare($sql);
+        $st->execute($params);
+        return $st->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
