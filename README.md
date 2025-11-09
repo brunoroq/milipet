@@ -1,36 +1,50 @@
 # MiliPet
 
-Sitio PHP para tienda de mascotas (catálogo, campañas/adopciones y panel administrativo básico) listo para correr en XAMPP.
+Sitio PHP para tienda de mascotas (catálogo, campañas/adopciones y panel administrativo básico) listo para correr con Docker.
 
 ## Requisitos
-- Windows con [XAMPP](https://www.apachefriends.org/) (Apache + MySQL + PHP 8.x)
+- Docker y Docker Compose
 - Navegador web
 
-## Instalación rápida (Windows + XAMPP)
-1) Instala y abre XAMPP, inicia servicios:
-	- Apache: Start
-	- MySQL: Start
+## Puesta en marcha rápida (Docker)
+1) Levanta los servicios:
 
-2) Copia el proyecto en esta ruta exacta:
-	- `C:\xampp\htdocs\milipet_site`
+	- En el directorio del proyecto, ejecuta:
 
-3) Crea la base de datos e importa el esquema:
-	- Abre `http://localhost/phpmyadmin/`
-	- Crea la BD `milipet_db` (collation: utf8mb4_general_ci)
-    - Importa `database/milipet_db.sql`
-	- Importa `database/schema.sql`
-	  - Alternativa: `database/milipet_db.sql` incluye datos de ejemplo adicionales (si existe)
+	  - docker compose up -d
 
-4) Configura credenciales de base de datos en `config/config.php`:
-	- Variables usadas por la app:
-	  - `DB_HOST` (por defecto `localhost`)
-	  - `DB_NAME` (usar `milipet_db`)
-	  - `DB_USER` (por defecto `root`)
-	  - `DB_PASS` (vacío por defecto en XAMPP)
+2) Accede a las aplicaciones:
+	- Sitio web: http://localhost:8080/
+	- Login de administrador: http://localhost:8080/?r=auth/admin_login
+	- phpMyAdmin: http://localhost:8081/
 
-5) Abre el sitio:
-	- Público: `http://localhost/milipet_site/public/`
-	- Administración: `http://localhost/milipet_site/public/?r=auth/admin_login`
+3) Base de datos (importar esquema y datos):
+	- Compose crea la BD `milipet_db` y el usuario por defecto.
+	- Credenciales por defecto (configurables en `docker-compose.yml`):
+	  - DB host: `db`
+	  - DB name: `milipet_db`
+	  - DB user: `appuser`
+	  - DB pass: `apppass`
+	  - Root pass: `root`
+	- En phpMyAdmin (usuario `appuser` / `apppass`), selecciona `milipet_db` y importa en este orden:
+	  1. `database/schema.sql`
+	  2. (Opcional) `database/milipet_db.sql` para datos de ejemplo
+	  3. Migraciones adicionales:
+		  - `database/migrations/2025_01_add_role_to_users.sql`
+		  - `database/migrations/2025_01_merge_admins_into_users.sql` (si vienes de tabla `admins`)
+		  - `database/migrations/2025_11_add_remember_tokens.sql`
+		  - `database/migrations/2025_11_add_user_carts.sql`
+
+4) Variables de entorno (opcionales):
+	- Puedes ajustar puertos y credenciales editando `docker-compose.yml` o usando variables del entorno antes de levantar los servicios:
+	  - `WEB_PORT` (por defecto 8080)
+	  - `PMA_PORT` (por defecto 8081)
+	  - `DB_PORT` (por defecto 3306)
+	  - `DB_NAME`, `DB_USER`, `DB_PASS`, `DB_ROOT_PASS`
+
+5) Detener/inspeccionar
+	- Detener: docker compose down
+	- Ver logs: docker compose logs -f
 
 ## Credenciales de administrador (por defecto)
 - Email: `admin@milipet.local`
@@ -41,7 +55,7 @@ Usuario admin por defecto (si lo creas con la migración):
 - Password inicial sugerida: `Admin123!` (cámbiala en producción)
 
 Si quieres cambiar la contraseña:
-1) Abre `http://localhost/milipet_site/public/assets/make_hash.php` para generar un hash nuevo.
+1) Abre `http://localhost:8080/assets/make_hash.php` para generar un hash nuevo.
 2) Copia el hash y actualiza el campo `password_hash` en la tabla `users` (phpMyAdmin). Si aún usas tabla `admins`, aplica la migración de merge.
 
 ### Migración merge de tabla legacy `admins` a `users`
@@ -88,7 +102,7 @@ Puedes automatizar la eliminación de tokens vencidos con el script CLI:
 
 Ejemplo de entrada en crontab (cada noche 03:15):
 ```
-15 3 * * * /usr/bin/php /ruta/a/milipet/scripts/cleanup_tokens.php >> /ruta/a/milipet/var/log/cleanup_tokens.log 2>&1
+15 3 * * * /usr/bin/php /ruta/al/proyecto/milipet/scripts/cleanup_tokens.php >> /ruta/al/proyecto/milipet/var/log/cleanup_tokens.log 2>&1
 ```
 El script imprime el número de tokens eliminados. Asegúrate que el usuario de cron tenga permisos de lectura sobre el proyecto.
 
@@ -105,15 +119,15 @@ El script imprime el número de tokens eliminados. Asegúrate que el usuario de 
 - Font Awesome (opcional): si tienes un Kit, define la constante `FONTAWESOME_KIT` (o ignora; el sitio funciona sin eso).
 
 ## Rutas principales
-- Home: `?r=home`
-- Catálogo: `?r=catalog` (filtros por categoría/especie, búsqueda, ver detalle)
-- Campañas/Estáticos: `?r=adoptions`, `?r=about`, `?r=policies`
-- Admin: `?r=admin/dashboard`, `?r=admin/products`
+- Home: `http://localhost:8080/?r=home`
+- Catálogo: `http://localhost:8080/?r=catalog` (filtros por categoría/especie, búsqueda, ver detalle)
+- Campañas/Estáticos: `http://localhost:8080/?r=adoptions`, `http://localhost:8080/?r=about`, `http://localhost:8080/?r=policies`
+- Admin: `http://localhost:8080/?r=admin/dashboard`, `http://localhost:8080/?r=admin/products`
 
 ## Notas y solución de problemas
-- Asegúrate de abrir el sitio desde la carpeta `public/` (ver punto 5). Acceder desde la raíz puede causar rutas de assets (CSS/JS) rotas.
-- Error de conexión a BD: revisa `DB_USER`/`DB_PASS` en `config/config.php` y que MySQL esté iniciado.
-- Error de “Failed opening required config.php”: verifica que el proyecto esté en `C:\xampp\htdocs\milipet_site` y que existan las carpetas `config/`, `public/`, etc.
+- El DocumentRoot ya apunta a `public/` en el contenedor; accede por `http://localhost:8080/`.
+- Error de conexión a BD: revisa variables en `docker-compose.yml` y que los contenedores estén arriba (`docker compose ps`).
+- Permisos de archivos (Linux): si ves problemas al escribir/guardar desde el contenedor, puedes descomentar la línea `user: "${HOST_UID:-1000}:${HOST_GID:-1000}"` en `docker-compose.yml`.
 - CSS/JS no cargan: fuerza actualización con Ctrl+F5.
 
 ## Estructura del proyecto (resumen)
