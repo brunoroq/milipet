@@ -2,14 +2,14 @@
 // public/index.php
 
 // --- Seguridad de cookies de sesión (ANTES de session_start) ---
-ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_samesite', 'Lax');
+session_set_cookie_params(['path'=>'/','httponly'=>true,'samesite'=>'Lax']);
 if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
     ini_set('session.cookie_secure', '1');
 }
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../app/helpers/auth_helper.php';
+require_once __DIR__ . '/../app/helpers/validation.php';
 require_once __DIR__ . '/../config/config.php';
 // Generate a CSRF token for the session if not present
 if (empty($_SESSION['csrf'])) {

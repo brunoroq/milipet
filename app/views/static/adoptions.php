@@ -40,7 +40,7 @@
         <h2>Fundaciones Asociadas</h2>
         <div class="foundations-grid">
             <article class="foundation-card">
-                <img src="assets/img/foundation1.jpg" alt="Fundación Patitas Felices">
+                <img src="<?= asset('assets/img/foundation1.jpg') ?>" alt="Fundación Patitas Felices">
                 <div class="foundation-info">
                     <h3 class="text-dark">Fundación Patitas Felices</h3>
                     <p class="text-dark">Dedicados al rescate y rehabilitación de perros y gatos en situación de calle.</p>
@@ -56,7 +56,7 @@
             </article>
 
             <article class="foundation-card">
-                <img src="assets/img/foundation2.jpg" alt="Fundación Amor Animal">
+                <img src="<?= asset('assets/img/foundation2.jpg') ?>" alt="Fundación Amor Animal">
                 <div class="foundation-info">
                     <h3 class="text-dark">Fundación Amor Animal</h3>
                     <p class="text-dark">Especializada en el cuidado y rehabilitación de mascotas con necesidades especiales.</p>

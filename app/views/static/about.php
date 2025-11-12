@@ -57,15 +57,15 @@
         <div class="gallery-grid">
             <!-- Aquí se pueden agregar las fotos de la tienda -->
             <div class="gallery-item">
-                <img src="assets/img/store-front.jpg" alt="Fachada de MiliPet">
+                <img src="<?= asset('assets/img/store-front.jpg') ?>" alt="Fachada de MiliPet">
                 <p>Nuestra tienda en Maipú</p>
             </div>
             <div class="gallery-item">
-                <img src="assets/img/store-interior.jpg" alt="Interior de la tienda">
+                <img src="<?= asset('assets/img/store-interior.jpg') ?>" alt="Interior de la tienda">
                 <p>Amplia selección de productos</p>
             </div>
             <div class="gallery-item">
-                <img src="assets/img/team.jpg" alt="Nuestro equipo">
+                <img src="<?= asset('assets/img/team.jpg') ?>" alt="Nuestro equipo">
                 <p>Equipo MiliPet</p>
             </div>
         </div>

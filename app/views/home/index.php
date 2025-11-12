@@ -5,8 +5,7 @@
 		<p>Alimentos, accesorios y amor por las mascotas. Envíos en Maipú y retiro en tienda.</p>
 	<a href="<?= url(['r' => 'catalog']) ?>" class="btn-large">Explorar catálogo</a>
 	</div>
-	<!-- Optional decorative overlay could go here -->
-	<!-- <div class="hero-overlay"></div> -->
+    
 </section>
 
 <section>
@@ -14,7 +13,7 @@
 	<div class="grid">
 		<?php foreach($featured as $p): ?>
 			<article class="card">
-				<img src="<?php echo htmlspecialchars($p['image_url'] ?: 'assets/img/placeholder.png'); ?>" alt="<?php echo htmlspecialchars($p['name']); ?>">
+				<img src="<?= image_src($p['image_url'] ?? null) ?>" alt="<?php echo htmlspecialchars($p['name']); ?>">
 				<h3 class="card-title"><?php echo htmlspecialchars($p['name']); ?></h3>
 				<p class="card-category muted"><?php echo htmlspecialchars($p['category_name'] ?? ''); ?></p>
 				<strong class="card-price">$<?php echo number_format($p['price'] ?? 0, 0, ',', '.'); ?></strong>

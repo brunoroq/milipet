@@ -32,6 +32,26 @@
       <?php endforeach; ?>
     </div>
   <?php endif; ?>
+  <?php if (!empty($_SESSION['old'])): ?>
+    <script>
+      // Repoblar campos con valores antiguos
+      document.addEventListener('DOMContentLoaded', function() {
+        const old = <?php echo json_encode($_SESSION['old']); ?>;
+        if (old.name) document.getElementById('prod-name').value = old.name;
+        if (old.description) document.getElementById('prod-desc').value = old.description;
+        if (old.price) document.getElementById('prod-price').value = old.price;
+        if (old.stock) document.getElementById('prod-stock').value = old.stock;
+        if (old.image_url) document.getElementById('prod-img').value = old.image_url;
+        if (old.category_id) document.getElementById('prod-cat').value = old.category_id;
+        if (old.species) {
+          const radio = document.querySelector('input[name="species"][value="' + old.species + '"]');
+          if (radio) radio.checked = true;
+        }
+        if (old.is_active) document.getElementById('prod-active').checked = true;
+      });
+      <?php unset($_SESSION['old']); ?>
+    </script>
+  <?php endif; ?>
   <fieldset><legend>Especies</legend>
     <label><input type="radio" name="species" value="" checked> Sin filtro</label>
     <label><input type="radio" name="species" value="dogs"> Perros</label>
@@ -192,4 +212,89 @@ tr.low-stock {
 tr.low-stock:hover {
   background-color: #ffe0b2;
 }
+
+.image-url-hint {
+  font-size: 0.9em;
+  margin-top: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: none;
+}
+
+.image-url-hint.warning {
+  background: #fff3e0;
+  color: #ef6c00;
+  display: block;
+}
+
+.image-url-hint.error {
+  background: #ffebee;
+  color: #c62828;
+  display: block;
+}
+
+.image-url-hint.success {
+  background: #e8f5e9;
+  color: #2e7d32;
+  display: block;
+}
 </style>
+
+<script>
+// Client-side image URL validation hint (non-blocking)
+document.addEventListener('DOMContentLoaded', function() {
+  const imgUrlInput = document.getElementById('prod-img');
+  if (!imgUrlInput) return;
+  
+  let hintEl = document.createElement('div');
+  hintEl.className = 'image-url-hint';
+  imgUrlInput.parentNode.appendChild(hintEl);
+  
+  let timeout;
+  imgUrlInput.addEventListener('blur', function() {
+    const url = imgUrlInput.value.trim();
+    if (!url) {
+      hintEl.className = 'image-url-hint';
+      hintEl.textContent = '';
+      return;
+    }
+    
+    // Check if it's a Google redirect URL
+    if (/^https?:\/\/(www\.)?google\.[^/]+\/url\?/i.test(url)) {
+      hintEl.className = 'image-url-hint error';
+      hintEl.textContent = '⚠️ URLs de redirección de Google no son válidas. Use la URL directa de la imagen.';
+      return;
+    }
+    
+    // Check if HTTPS for external URLs
+    if (/^http:\/\//i.test(url)) {
+      hintEl.className = 'image-url-hint error';
+      hintEl.textContent = '⚠️ Use HTTPS para evitar problemas de contenido mixto.';
+      return;
+    }
+    
+    // Try to validate external HTTPS URLs
+    if (/^https:\/\//i.test(url)) {
+      hintEl.className = 'image-url-hint';
+      hintEl.textContent = '⏳ Verificando...';
+      
+      clearTimeout(timeout);
+      timeout = setTimeout(function() {
+        fetch(url, { method: 'HEAD', mode: 'no-cors' })
+          .then(function() {
+            hintEl.className = 'image-url-hint success';
+            hintEl.textContent = '✓ URL externa parece válida (se verificará en el servidor).';
+          })
+          .catch(function() {
+            hintEl.className = 'image-url-hint warning';
+            hintEl.textContent = '⚠️ No se pudo verificar la URL (se validará al guardar).';
+          });
+      }, 500);
+    } else {
+      // Local path hint
+      hintEl.className = 'image-url-hint';
+      hintEl.textContent = 'ℹ️ Ruta local - se verificará al guardar.';
+    }
+  });
+});
+</script>

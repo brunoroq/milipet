@@ -2,17 +2,6 @@
 require_once __DIR__ . '/../../config/db.php';
 
 class Product {
-    // Cache de columnas por tabla para evitar consultas repetidas
-    private static function hasColumn(string $col): bool {
-        static $cache = null;
-        if ($cache === null) {
-            $pdo = db_connect();
-            $stmt = $pdo->query("SHOW COLUMNS FROM products");
-            $cols = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
-            $cache = array_map('strtolower', $cols);
-        }
-        return in_array(strtolower($col), $cache, true);
-    }
 
     public static function search($query = '', $category_id = null, $species_id = null, $in_stock = false) {
         try {

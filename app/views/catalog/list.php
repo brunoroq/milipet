@@ -55,20 +55,7 @@
                 ">
             <?php foreach ($suggested as $s): ?>
                 <div class="product-card">
-                        <?php
-                        $rel = $s['image_url'] ?? '';
-                        $rel = $rel ? str_replace('\\','/', strtolower($rel)) : '';
-                        $fs  = $rel ? (defined('PUBLIC_PATH') ? PUBLIC_PATH.'/' . ltrim($rel,'/') : null) : null;
-                        $placeholderCandidates = ['assets/img/placeholder.svg','assets/img/placeholder.png'];
-                        $chosenPlaceholder = null;
-                        foreach ($placeholderCandidates as $ph) {
-                            $phPath = (defined('PUBLIC_PATH') ? PUBLIC_PATH.'/' : '') . $ph;
-                            if (is_file($phPath)) { $chosenPlaceholder = $ph; break; }
-                        }
-                        if (!$chosenPlaceholder) { $chosenPlaceholder = 'assets/img/placeholder.svg'; }
-                        $src = ($fs && is_file($fs)) ? asset($rel) : asset($chosenPlaceholder);
-                        ?>
-                        <img src="<?= htmlspecialchars($src, ENT_QUOTES, 'UTF-8') ?>"
+                        <img src="<?= image_src($s['image_url'] ?? null) ?>"
                          alt="<?= htmlspecialchars($s['name'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
                          style="width:100%;height:200px;object-fit:cover;border-radius:8px;">
                     <h4 style="margin-top:10px;"><?= htmlspecialchars($s['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></h4>
@@ -88,20 +75,7 @@
 <div class="grid">
     <?php foreach($products as $p): ?>
     <article class="card <?php echo ($p['stock'] <= 0 ? 'out-of-stock' : ''); ?>">
-        <?php
-        $rel = $p['image_url'] ?? '';
-        $rel = $rel ? str_replace('\\','/', strtolower($rel)) : '';
-        $fs  = $rel ? (defined('PUBLIC_PATH') ? PUBLIC_PATH.'/' . ltrim($rel,'/') : null) : null;
-    $placeholderCandidates = ['assets/img/placeholder.svg','assets/img/placeholder.png'];
-        $chosenPlaceholder = null;
-        foreach ($placeholderCandidates as $ph) {
-            $phPath = (defined('PUBLIC_PATH') ? PUBLIC_PATH.'/' : '') . $ph;
-            if (is_file($phPath)) { $chosenPlaceholder = $ph; break; }
-        }
-        if (!$chosenPlaceholder) { $chosenPlaceholder = 'assets/img/placeholder.svg'; }
-        $src = ($fs && is_file($fs)) ? asset($rel) : asset($chosenPlaceholder);
-        ?>
-        <img src="<?php echo htmlspecialchars($src); ?>" alt="<?php echo htmlspecialchars($p['name']); ?>">
+        <img src="<?= image_src($p['image_url'] ?? null) ?>" alt="<?php echo htmlspecialchars($p['name']); ?>">
         <h3 class="card-title"><?php echo htmlspecialchars($p['name']); ?></h3>
         <p class="card-category muted"><?php echo htmlspecialchars($p['category_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?></p>
         <strong class="card-price">$<?php echo number_format($p['price'] ?? 0, 0, ',', '.'); ?></strong>
