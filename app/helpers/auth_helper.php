@@ -5,12 +5,16 @@ if (session_status() === PHP_SESSION_NONE) {
 
 function is_authenticated() {
     // Compatibilidad: aceptar uid/role nuevos o admin_id legacy
-    $uid = $_SESSION['uid'] ?? ($_SESSION['admin_id'] ?? null);
+    $uid = $_SESSION['uid'] ?? ($_SESSION['admin_id'] ?? ($_SESSION['user_id'] ?? null));
     if (!$uid) { return false; }
     $last = $_SESSION['last_activity'] ?? null;
     $expire = 30 * 60;
     if (!$last || (time() - $last) > $expire) {
-        logout();
+        // Session expired: clear session WITHOUT destroying it (to preserve flash messages)
+        $_SESSION['uid'] = null;
+        $_SESSION['user_id'] = null;
+        $_SESSION['role'] = null;
+        $_SESSION['last_activity'] = null;
         return false;
     }
     $_SESSION['last_activity'] = time();
@@ -37,7 +41,17 @@ function logout() {
 
 function require_auth() {
     if (!is_authenticated()) {
-        $_SESSION['flash_error'] = 'Debe iniciar sesión para acceder al panel de administración';
+        if (function_exists('flash')) { flash('error','Debes iniciar sesión.'); }
+        header('Location: ' . (function_exists('url') ? url(['r'=>'auth/admin_login']) : '?r=auth/admin_login'));
+        exit;
+    }
+}
+
+function require_admin() {
+    $uid = $_SESSION['user_id'] ?? ($_SESSION['uid'] ?? null);
+    $role = $_SESSION['role'] ?? null;
+    if (!$uid || $role !== 'admin') {
+        if (function_exists('flash')) { flash('error','Debes iniciar sesión.'); }
         header('Location: ' . (function_exists('url') ? url(['r'=>'auth/admin_login']) : '?r=auth/admin_login'));
         exit;
     }

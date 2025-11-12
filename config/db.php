@@ -10,7 +10,12 @@ function db_connect(): PDO {
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
         ];
-        $pdo = new PDO($dsn, DB_USER, DB_PASS, $opts);
+        try {
+            $pdo = new PDO($dsn, DB_USER, DB_PASS, $opts);
+        } catch (Throwable $e) {
+            error_log('[DB CONNECT ERROR] DSN='.$dsn.' MSG='.$e->getMessage());
+            throw $e; // será manejado por controladores o el handler global
+        }
     }
     return $pdo;
 }

@@ -32,7 +32,9 @@ try { $navCategories = Category::all(); } catch (Throwable $e) { $navCategories 
 <body>
 <header class="navbar navbar-expand-lg navbar-dark bg-primary paw-pattern">
 	<div class="container">
-		<a class="navbar-brand fw-bold" href="<?= url(['r' => 'home']) ?>">MiliPet</a>
+		<a class="navbar-brand" href="<?= url(['r' => 'home']) ?>">
+			<img src="<?= asset('assets/img/logo-milipet.png') ?>" alt="MiliPet" class="header-logo">
+		</a>
 		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 		</button>

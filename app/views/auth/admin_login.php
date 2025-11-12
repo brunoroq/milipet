@@ -7,7 +7,9 @@
 <section class="auth-wrapper">
   <div class="card auth-card">
     <h1>Panel de administración</h1>
-    <?php if (!empty($flash)): ?><div class="alert alert-error"><?= htmlspecialchars($flash) ?></div><?php endif; ?>
+    <?php if ($msg = flash('error')): ?>
+      <div class="alert alert-danger"><?= htmlspecialchars($msg) ?></div>
+    <?php endif; ?>
     <form method="post" action="<?= url(['r'=>'auth/admin_login_post']) ?>">
       <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrf) ?>">
       <label>Email</label>

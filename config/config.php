@@ -1,10 +1,16 @@
 <?php
+require_once __DIR__ . '/app.php';
 // config/config.php
 
-// --- Errores: loguear, no imprimir en HTML ---
+// --- Errores: controlados por APP_ENV, siempre registrar ---
 error_reporting(E_ALL);
-ini_set('display_errors', '0');
 ini_set('log_errors', '1');
+if (defined('APP_ENV') && APP_ENV === 'dev') {
+    ini_set('display_errors', '1');
+    ini_set('display_startup_errors', '1');
+} else {
+    ini_set('display_errors', '0');
+}
 
 // --- Variables de entorno / defaults portables ---
 define('DB_HOST', getenv('DB_HOST') ?: (getenv('MILIPET_DB_HOST') ?: 'localhost'));
@@ -41,6 +47,31 @@ if (!defined('PUBLIC_PATH')) {
 if (!function_exists('asset')) {
     function asset(string $path): string {
         return rtrim(BASE_URL, '/') . '/' . ltrim($path, '/');
+    }
+}
+
+// Helper image_src() para normalizar rutas de imagen con fallback a placeholder
+if (!function_exists('image_src')) {
+    function image_src(?string $path): string {
+        if (empty($path)) {
+            return asset('assets/img/placeholder.png');
+        }
+        // External URLs pass through unchanged
+        if (preg_match('#^https?://#i', $path)) {
+            return $path;
+        }
+        // Normalize local path to /assets/...
+        $normalized = ltrim($path, '/');
+        if (strpos($normalized, 'assets/') !== 0) {
+            $normalized = 'assets/' . ltrim($normalized, '/');
+        }
+        // Check if file exists
+        $filePath = PUBLIC_PATH . '/' . $normalized;
+        if (is_file($filePath)) {
+            return asset($normalized);
+        }
+        // Fallback to placeholder
+        return asset('assets/img/placeholder.png');
     }
 }
 
@@ -82,9 +113,9 @@ if (!function_exists('csrf_check')) {
 if (!function_exists('requireRole')) {
     function requireRole(array $allowed) {
         $role = $_SESSION['role'] ?? null;
-        $uid  = $_SESSION['uid'] ?? null;
+        $uid  = $_SESSION['uid'] ?? ($_SESSION['user_id'] ?? null);
         if (!$uid || !$role || !in_array($role, $allowed, true)) {
-            flash('auth','Debes iniciar sesión de administrador.');
+            flash('error','Debes iniciar sesión.');
             header('Location: ' . url(['r'=>'auth/admin_login']));
             exit;
         }
@@ -97,7 +128,7 @@ if (!defined('REMEMBER_COOKIE_NAME')) {
 }
 
 if (!function_exists('mp_set_remember_token')) {
-    function mp_set_remember_token(int $userId, int $days = 30): void {
+    function mp_set_remember_token(int $userId, int $days = 30): bool {
         $selector = bin2hex(random_bytes(16));
         $validator = bin2hex(random_bytes(32)); // guardaremos hash en DB
         $hash = hash('sha256', $validator);
@@ -106,8 +137,16 @@ if (!function_exists('mp_set_remember_token')) {
         // Guardar en DB
         $db = class_exists('Database') ? Database::getInstance()->getConnection() : (function_exists('db_connect') ? db_connect() : null);
         if ($db instanceof PDO) {
-            $stmt = $db->prepare('INSERT INTO remember_tokens (user_id, selector, hashed_validator, expires_at) VALUES (?,?,?,?)');
-            $stmt->execute([$userId, $selector, $hash, $expires]);
+            try {
+                $stmt = $db->prepare('INSERT INTO remember_tokens (user_id, selector, hashed_validator, expires_at) VALUES (?,?,?,?)');
+                $stmt->execute([$userId, $selector, $hash, $expires]);
+            } catch (Throwable $e) {
+                error_log('[REMEMBER] insert failed: '.$e->getMessage());
+                // No establecer cookie si no podemos persistir el token
+                return false;
+            }
+        } else {
+            return false;
         }
 
         // Cookie segura
@@ -120,6 +159,7 @@ if (!function_exists('mp_set_remember_token')) {
             'samesite' => 'Lax',
         ];
         setcookie(REMEMBER_COOKIE_NAME, $cookieVal, $params);
+        return true;
     }
 }
 
@@ -137,8 +177,12 @@ if (!function_exists('mp_forget_token_by_selector')) {
     function mp_forget_token_by_selector(string $selector): void {
         $db = class_exists('Database') ? Database::getInstance()->getConnection() : (function_exists('db_connect') ? db_connect() : null);
         if ($db instanceof PDO) {
-            $stmt = $db->prepare('DELETE FROM remember_tokens WHERE selector=?');
-            $stmt->execute([$selector]);
+            try {
+                $stmt = $db->prepare('DELETE FROM remember_tokens WHERE selector=?');
+                $stmt->execute([$selector]);
+            } catch (Throwable $e) {
+                error_log('[REMEMBER] delete failed: '.$e->getMessage());
+            }
         }
     }
 }
@@ -154,9 +198,15 @@ if (!function_exists('mp_remember_autologin')) {
         $db = class_exists('Database') ? Database::getInstance()->getConnection() : (function_exists('db_connect') ? db_connect() : null);
         if (!($db instanceof PDO)) { return; }
 
-        $stmt = $db->prepare('SELECT rt.user_id, rt.hashed_validator, rt.expires_at, u.role, u.is_active FROM remember_tokens rt JOIN users u ON u.id=rt.user_id WHERE selector=? LIMIT 1');
-        $stmt->execute([$selector]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $db->prepare('SELECT rt.user_id, rt.hashed_validator, rt.expires_at, u.role, u.is_active FROM remember_tokens rt JOIN users u ON u.id=rt.user_id WHERE selector=? LIMIT 1');
+            $stmt->execute([$selector]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            error_log('[REMEMBER] select failed: '.$e->getMessage());
+            mp_clear_remember_cookie();
+            return;
+        }
         if (!$row) { mp_clear_remember_cookie(); return; }
         if (strtotime($row['expires_at']) < time() || empty($row['is_active'])) { mp_forget_token_by_selector($selector); mp_clear_remember_cookie(); return; }
 
@@ -185,9 +235,14 @@ if (!function_exists('mp_cleanup_expired_tokens')) {
     function mp_cleanup_expired_tokens(): int {
         $db = class_exists('Database') ? Database::getInstance()->getConnection() : (function_exists('db_connect') ? db_connect() : null);
         if (!($db instanceof PDO)) { return 0; }
-        $stmt = $db->prepare('DELETE FROM remember_tokens WHERE expires_at < NOW()');
-        $stmt->execute();
-        return $stmt->rowCount();
+        try {
+            $stmt = $db->prepare('DELETE FROM remember_tokens WHERE expires_at < NOW()');
+            $stmt->execute();
+            return $stmt->rowCount();
+        } catch (Throwable $e) {
+            error_log('[REMEMBER] cleanup failed: '.$e->getMessage());
+            return 0;
+        }
     }
 }
 
@@ -213,10 +268,10 @@ return [
     'store' => [
         'name'    => 'MiliPet',
         'address' => 'Maipú, Santiago',
-        'phone'   => '+56 9 XXXX XXXX',
+        'phone'   => '+56 9 5458 036',
         'email'   => 'contacto@milipet.cl',
         'social'  => [
-            'whatsapp'  => 'https://wa.me/56XXXXXXXXX',
+            'whatsapp'  => 'https://wa.me/5695458036',
             'instagram' => 'https://www.instagram.com/mili_petshop/',
             'facebook'  => 'https://facebook.com/milipet',
         ],

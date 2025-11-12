@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../models/Product.php';
 require_once __DIR__ . '/../models/Category.php';
+require_once __DIR__ . '/../models/Campaign.php';
 require_once __DIR__ . '/../helpers/auth_helper.php';
 
 class AdminController {
@@ -149,6 +150,9 @@ class AdminController {
   }
 
   public function dashboard() { 
+    if (defined('APP_ENV') && APP_ENV === 'dev') {
+      error_log('[DASHBOARD] sid='.session_id().' uid='.($_SESSION['user_id']??'null').' role='.($_SESSION['role']??'null'));
+    }
     render('admin/dashboard'); 
   }
 
@@ -196,6 +200,24 @@ class AdminController {
     if (trim($data['name']) === '') $errors[] = 'El nombre es obligatorio.';
     if ($data['price'] === '' || !is_numeric($data['price']) || $data['price'] < 0) $errors[] = 'Precio inválido.';
     if (!is_int($data['stock']) || $data['stock'] < 0) $errors[] = 'Stock inválido.';
+    
+    // Validate image URL (only if provided and not uploading file)
+    if (!isset($_FILES['image_file']) || $_FILES['image_file']['error'] === UPLOAD_ERR_NO_FILE) {
+      $imgInput = $data['image_url'];
+      $validatedImage = validate_product_image($imgInput, $errors);
+      if ($validatedImage === null) {
+        // Validation failed
+        $_SESSION['flash'] = ['type'=>'error','messages'=>$errors];
+        $_SESSION['old'] = $data;
+        $products = Product::allAdmin();
+        $categories = Category::all();
+        render('admin/products', ['products'=>$products, 'categories'=>$categories, 'old'=>$data, 'flash'=>$_SESSION['flash']]);
+        unset($_SESSION['flash'], $_SESSION['old']);
+        return;
+      }
+      $data['image_url'] = $validatedImage;
+    }
+    
     if (!empty($errors)) {
       // devolver a la vista con errores y los datos previos
       $_SESSION['flash'] = ['type'=>'error','messages'=>$errors];

@@ -1,9 +1,0 @@
-/* Scoped outline button styles inside cards for contrast */
-.card .btn-outline { border: 1px solid var(--green); background: transparent; color: var(--green-dark); }
-.card .btn-outline:hover { background: var(--green); color: #fff; }
-
-/* Transparent content wrappers inside cards */
-.card .card-body, .card .card-content { background: transparent; color: inherit; }
-
-/* Ensure out-of-stock does not reduce text readability */
-.card.out-of-stock { opacity: 1 !important; }

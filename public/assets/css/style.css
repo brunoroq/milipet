@@ -54,8 +54,12 @@ h5 { font-size: 1.125rem; }
 .col { flex: 1; }
 
 /* Navbar (kept light, Bootstrap handles theme) */
-.navbar { position: sticky; top: 0; z-index: 1000; height: var(--header-height); box-shadow: var(--shadow); }
+.navbar { position: sticky; top: 0; z-index: 1000; min-height: 80px; box-shadow: var(--shadow); padding-top: 0.75rem; padding-bottom: 0.75rem; }
 .navbar .nav-link.btn { line-height: 1.2; }
+
+/* Header logo */
+.header-logo { height: 60px; width: auto; display: block; }
+@media (max-width: 768px) { .header-logo { height: 50px; } }
 
 /* Paw pattern decoration over brand color */
 .paw-pattern {

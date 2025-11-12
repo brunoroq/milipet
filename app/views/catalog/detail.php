@@ -1,19 +1,6 @@
 <?php ?>
 <article class="detail">
-    <?php
-    $rel = $product['image_url'] ?? '';
-    $rel = $rel ? str_replace('\\','/', strtolower($rel)) : '';
-    $fs  = $rel ? (defined('PUBLIC_PATH') ? PUBLIC_PATH.'/' . ltrim($rel,'/') : null) : null;
-    $placeholderCandidates = ['assets/img/placeholder.svg','assets/img/placeholder.png'];
-    $chosenPlaceholder = null;
-    foreach ($placeholderCandidates as $ph) {
-        $phPath = (defined('PUBLIC_PATH') ? PUBLIC_PATH.'/' : '') . $ph;
-        if (is_file($phPath)) { $chosenPlaceholder = $ph; break; }
-    }
-    if (!$chosenPlaceholder) { $chosenPlaceholder = 'assets/img/placeholder.svg'; }
-    $src = ($fs && is_file($fs)) ? asset($rel) : asset($chosenPlaceholder);
-    ?>
-    <img src="<?php echo htmlspecialchars($src); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
+    <img src="<?= image_src($product['image_url'] ?? null) ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
     <div>
         <h1><?php echo htmlspecialchars($product['name']); ?></h1>
         <p class="muted"><?php echo htmlspecialchars($product['category_name'] ?? ''); ?></p>

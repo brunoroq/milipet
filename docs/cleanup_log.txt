@@ -1,0 +1,43 @@
+2025-11-12 Cleanup
+Removed files:
+- app/models/AdminUser.php
+- app/views/auth/login.php
+- public/assets/css/__append.css
+Approx lines removed: ~60
+
+2025-11-12 Image Path Fix
+Added image_src() helper to config/config.php (~18 lines)
+Updated views to use image_src() for automatic placeholder fallback:
+- app/views/home/index.php (line 16)
+- app/views/catalog/list.php (lines 58-74, 90-106)
+- app/views/catalog/detail.php (lines 3-16)
+- app/views/catalog/favorites.php (lines 8-24)
+- app/views/catalog/cart.php (lines 10-26)
+Removed ~90 lines of repetitive file_exists() checks
+Net change: ~72 lines removed (added 18, removed 90)
+All images now load with proper /assets/... paths and automatic placeholder fallback
+
+2025-11-12 Image Validation System
+Added robust validation for product images (external HTTPS + local files):
+- Created app/helpers/validation.php (~90 lines)
+  - is_https_url(), is_http_url(), looks_like_image_filename()
+  - head_content_type_and_length() - cURL HEAD request with fallback
+  - is_valid_external_image_url() - validates HTTPS URLs, rejects HTTP and Google redirects
+  - is_valid_local_image_path() - validates local files with getimagesize()
+  - validate_product_image() - main validation entry point
+- Updated public/index.php to load validation helper
+- Updated AdminController::saveProduct() to validate image URLs before saving
+  - Validates external HTTPS URLs (200/206 response, image/* content-type)
+  - Validates local image files (existence + valid image format)
+  - Rejects HTTP URLs (mixed content prevention)
+  - Rejects Google redirect URLs
+  - Shows validation errors with flash messages
+  - Preserves form data on validation failure
+- Updated app/views/admin/products.php
+  - Added client-side validation hints (non-blocking)
+  - Auto-repopulates form fields on validation errors
+  - Visual feedback for invalid URLs (warning/error/success states)
+- Created test_validation.php for testing validation functions
+Net change: ~110 lines added
+All product images now validated before saving
+Layout and CSS unchanged

@@ -1,16 +1,16 @@
 Options -Indexes
 RewriteEngine On
 
-# Servir archivos estáticos existentes directamente (assets y extensiones comunes)
-RewriteCond %{REQUEST_URI} ^/assets/ [OR]
-RewriteCond %{REQUEST_URI} \.(?:css|js|png|jpe?g|gif|webp|svg|ico)$ [NC]
-RewriteCond %{REQUEST_FILENAME} -f
+# Servir archivos y directorios existentes directamente
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
+# Explícitamente permitir que assets/ pasen sin rewrite
+RewriteRule ^assets/ - [L]
+
 # Front controller para el resto
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [L]
+RewriteRule ^ index.php [L,QSA]
 
 # No indexar rutas de admin o auth
 <IfModule mod_headers.c>
