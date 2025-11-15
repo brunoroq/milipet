@@ -2,7 +2,7 @@
 // Carga de configuración y datos para el menú
 require_once __DIR__ . '/../../../config/config.php';
 $storeConfig = (isset($config) && is_array($config)) ? $config : [];
-$wa = $storeConfig['store']['social']['whatsapp'] ?? 'https://wa.me/56900000000';
+$wa = $storeConfig['store']['social']['whatsapp'] ?? 'https://wa.me/5695458036';
 $ig = $storeConfig['store']['social']['instagram'] ?? 'https://www.instagram.com/mili_petshop/';
 // Categorías para el dropdown de Catálogo
 require_once __DIR__ . '/../../models/Category.php';

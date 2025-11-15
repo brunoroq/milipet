@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/Role.php';
 
 class AuthController {
   // Rate limit simple por email + IP
@@ -36,70 +38,61 @@ class AuthController {
       exit;
     }
 
-    // Conexión DB
+    // Buscar usuario con rol
     try {
-      $db = Database::getInstance()->getConnection();
+      $u = User::findByEmailWithRole($email);
     } catch (Throwable $e) {
-      if (defined('APP_ENV') && APP_ENV === 'dev') { error_log('[LOGIN] DB connect error: '.$e->getMessage()); }
+      if (defined('APP_ENV') && APP_ENV === 'dev') { error_log('[LOGIN] DB error: '.$e->getMessage()); }
       flash('error','No fue posible autenticar. Inténtalo nuevamente.');
       header('Location: /?r=auth/admin_login');
       exit;
     }
 
-    // Buscar usuario en tabla principal; fallback a admins si corresponde
-    $u = null;
-    try {
-      $stmt=$db->prepare("SELECT id,email,password_hash,role,is_active,fullname FROM users WHERE email=? LIMIT 1");
-      $stmt->execute([$email]);
-      $u = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
-    } catch (Throwable $e) {
-      if (defined('APP_ENV') && APP_ENV === 'dev') { error_log('[LOGIN] users fallback: '.$e->getMessage()); }
-      try {
-        $stmt=$db->prepare("SELECT id,email,password_hash FROM admins WHERE email=? LIMIT 1");
-        $stmt->execute([$email]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
-        if ($row) {
-          $u = ['id'=>$row['id'], 'email'=>$row['email'], 'password_hash'=>$row['password_hash'], 'role'=>'admin', 'is_active'=>1];
-        }
-      } catch (Throwable $e2) {
-        if (defined('APP_ENV') && APP_ENV === 'dev') { error_log('[LOGIN] admins query failed: '.$e2->getMessage()); }
-      }
-    }
-
-    $pass_ok = isset($u['password_hash']) && password_verify($pass, $u['password_hash']);
+    $pass_ok = isset($u['password']) && password_verify($pass, $u['password']);
     if (defined('APP_ENV') && APP_ENV === 'dev') {
-      error_log('[LOGIN] found='.(int)(bool)$u.' pass_ok='.(int)$pass_ok);
+      error_log('[LOGIN] found='.(int)(bool)$u.' pass_ok='.(int)$pass_ok.' role='.($u['role_name'] ?? 'null'));
     }
 
-    if (!$u || !$pass_ok || (isset($u['is_active']) && (int)$u['is_active'] === 0)) {
+    // Validar: usuario existe, password correcto, cuenta activa
+    if (!$u || !$pass_ok || (int)$u['is_active'] !== 1) {
       $this->hitAttempt($key);
       flash('error','Credenciales inválidas.');
       header('Location: /?r=auth/admin_login');
       exit;
     }
 
-    if (isset($u['role']) && !in_array($u['role'], ['admin','editor'], true)) {
-      // Mantener genérico para no filtrar permisos
+    // Validar que sea admin
+    if (!isset($u['role_name']) || $u['role_name'] !== 'admin') {
       flash('error','Credenciales inválidas.');
       header('Location: /?r=auth/admin_login');
       exit;
     }
 
+    // Login exitoso
     session_regenerate_id(true);
-    $userId = isset($u['id_user']) ? (int)$u['id_user'] : (int)($u['id'] ?? 0);
-    $_SESSION['user_id'] = $userId;
-    $_SESSION['uid']  = $userId; // compatibilidad con código existente
-    $_SESSION['email'] = $u['email'] ?? '';
-    $_SESSION['role'] = $u['role'] ?? 'admin';
+    $_SESSION['user_id'] = (int)$u['id'];
+    $_SESSION['uid']  = (int)$u['id']; // compatibilidad
+    $_SESSION['email'] = $u['email'];
+    $_SESSION['name'] = $u['name'];
+    $_SESSION['role'] = $u['role_name'];
     $_SESSION['last_activity'] = time();
+    
+    // Actualizar último login
+    User::updateLastLogin($u['id']);
+    
     $this->clearAttempts($key);
-    if ($remember && function_exists('mp_set_remember_token')) {
-      $ok = mp_set_remember_token((int)$u['id']);
-      if (!$ok) {
-        // Degradar silenciosamente: iniciar sesión sin 'recordarme'
-        // Opcional: podríamos guardar un flash pero los layouts admin no lo muestran actualmente
-        error_log('[LOGIN] remember-me unavailable, continuing without persistent token');
-      }
+    
+    // Remember me (usando el campo remember_token de la tabla users)
+    if ($remember) {
+      $token = bin2hex(random_bytes(32));
+      User::updateRememberToken($u['id'], $token);
+      setcookie('mp_remember', $token, [
+        'expires' => time() + (30 * 86400),
+        'path' => '/',
+        'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+        'httponly' => true,
+        'samesite' => 'Lax',
+      ]);
     }
     if (defined('APP_ENV') && APP_ENV === 'dev') {
       error_log('[LOGIN OK] sid='.session_id().' uid='.$_SESSION['user_id'].' role='.$_SESSION['role']);

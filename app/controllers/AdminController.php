@@ -36,19 +36,22 @@ class AdminController {
         'id' => $_POST['id'] ?? null,
         'title' => $_POST['title'] ?? '',
         'description' => $_POST['description'] ?? '',
-        'date' => $_POST['date'] ?? '',
-        'location' => $_POST['location'] ?? '',
-        'foundation' => $_POST['foundation'] ?? null,
-        'contact_info' => $_POST['contact_info'] ?? '',
-        'image_url' => $_POST['image_url'] ?? '',
+        'start_date' => $_POST['start_date'] ?? null,
+        'end_date' => $_POST['end_date'] ?? null,
+        'banner_image' => $_POST['banner_image'] ?? '',
         'is_active' => isset($_POST['is_active']) ? 1 : 0,
     ];
 
     // Validación básica
     $errors = [];
     if (trim($data['title']) === '') $errors[] = 'El título es obligatorio.';
-    if (trim($data['date']) === '') $errors[] = 'La fecha es obligatoria.';
-    if (trim($data['location']) === '') $errors[] = 'La ubicación es obligatoria.';
+    
+    // Validar que end_date no sea anterior a start_date
+    if (!empty($data['start_date']) && !empty($data['end_date'])) {
+        if (strtotime($data['end_date']) < strtotime($data['start_date'])) {
+            $errors[] = 'La fecha de fin no puede ser anterior a la fecha de inicio.';
+        }
+    }
 
     if (!empty($errors)) {
         $_SESSION['flash'] = ['type'=>'error', 'messages'=>$errors];
@@ -86,8 +89,8 @@ class AdminController {
                     }
                     $target = $dir.'/'.$unique;
                     if (move_uploaded_file($file['tmp_name'], $target)) {
-                        if (!empty($data['id']) && !empty($_POST['current_image_url'])) {
-                            $prev = $_POST['current_image_url'];
+                        if (!empty($data['id']) && !empty($_POST['current_banner_image'])) {
+                            $prev = $_POST['current_banner_image'];
                             if (strpos($prev, 'assets/img/') === 0) {
                 $prevPathBase = defined('PUBLIC_PATH') ? PUBLIC_PATH : (__DIR__.'/../../public');
                 $prevPath = rtrim($prevPathBase, '/').'/'.$prev;
@@ -96,7 +99,7 @@ class AdminController {
                                 }
                             }
                         }
-                        $data['image_url'] = 'assets/img/'.$unique;
+                        $data['banner_image'] = 'assets/img/'.$unique;
                     }
                 }
             }
@@ -117,8 +120,8 @@ class AdminController {
         $campaign = Campaign::find($id);
         if ($campaign) {
             // Eliminar imagen si existe
-            if (!empty($campaign['image_url']) && strpos($campaign['image_url'], 'assets/img/') === 0) {
-                $imagePath = __DIR__.'/../../public/'.$campaign['image_url'];
+            if (!empty($campaign['banner_image']) && strpos($campaign['banner_image'], 'assets/img/') === 0) {
+                $imagePath = __DIR__.'/../../public/'.$campaign['banner_image'];
                 if (is_file($imagePath)) {
                     @unlink($imagePath);
                 }
@@ -187,12 +190,14 @@ class AdminController {
     $data = [
       'id' => $_POST['id'] ?? null,
       'name' => $_POST['name'] ?? '',
-      'description' => $_POST['description'] ?? '',
+      'short_desc' => $_POST['short_desc'] ?? '',
+      'long_desc' => $_POST['long_desc'] ?? '',
       'price' => (float)($_POST['price'] ?? 0),
       'stock' => (int)($_POST['stock'] ?? 0),
       'species' => $_POST['species'] ?? null,
       'category_id' => isset($_POST['category_id']) && $_POST['category_id']!=='' ? (int)$_POST['category_id'] : null,
       'image_url' => $_POST['image_url'] ?? '',
+      'is_featured' => isset($_POST['is_featured']) ? 1 : 0,
       'is_active' => isset($_POST['is_active']) ? 1 : 0,
     ];
     // Validación básica
@@ -307,10 +312,12 @@ class AdminController {
         'id' => $id,
         'stock' => $newStock,
         'name' => $product['name'],
-        'description' => $product['description'],
+        'short_desc' => $product['short_desc'] ?? '',
+        'long_desc' => $product['long_desc'] ?? '',
         'price' => $product['price'],
         'category_id' => $product['category_id'],
         'image_url' => $product['image_url'],
+        'is_featured' => $product['is_featured'] ?? 0,
         'is_active' => $product['is_active'],
     ];
     

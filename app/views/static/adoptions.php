@@ -48,7 +48,7 @@
                         <a href="https://instagram.com/patitasfelices" target="_blank" class="social-link">
                             <i class="fab fa-instagram"></i> @patitasfelices
                         </a>
-                        <a href="https://wa.me/56900000001" target="_blank" class="social-link">
+                        <a href="https://wa.me/5695458036" target="_blank" class="social-link">
                             <i class="fab fa-whatsapp"></i> Contactar
                         </a>
                     </div>
@@ -64,7 +64,7 @@
                         <a href="https://instagram.com/amoranimal" target="_blank" class="social-link">
                             <i class="fab fa-instagram"></i> @amoranimal
                         </a>
-                        <a href="https://wa.me/56900000002" target="_blank" class="social-link">
+                        <a href="https://wa.me/5695458036" target="_blank" class="social-link">
                             <i class="fab fa-whatsapp"></i> Contactar
                         </a>
                     </div>

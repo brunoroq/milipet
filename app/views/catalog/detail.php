@@ -4,7 +4,17 @@
     <div>
         <h1><?php echo htmlspecialchars($product['name']); ?></h1>
         <p class="muted"><?php echo htmlspecialchars($product['category_name'] ?? ''); ?></p>
-        <p><?php echo nl2br(htmlspecialchars($product['description'] ?? '')); ?></p>
+        
+        <?php if (!empty($product['short_desc'])): ?>
+            <p class="product-short-desc"><?php echo htmlspecialchars($product['short_desc']); ?></p>
+        <?php endif; ?>
+        
+        <?php if (!empty($product['long_desc'])): ?>
+            <div class="product-long-desc">
+                <?php echo nl2br(htmlspecialchars($product['long_desc'])); ?>
+            </div>
+        <?php endif; ?>
+        
         <strong>$<?php echo number_format($product['price'] ?? 0, 0, ',', '.'); ?></strong>
         
         <?php if ($product['stock'] <= 0): ?>
@@ -68,6 +78,19 @@
 </article>
 
 <style>
+.product-short-desc {
+    font-size: 1.1rem;
+    color: #555;
+    margin: 1rem 0;
+    font-weight: 500;
+}
+
+.product-long-desc {
+    color: #666;
+    line-height: 1.6;
+    margin: 1rem 0 1.5rem 0;
+}
+
 .stock-status {
     font-weight: bold;
     padding: 10px 15px;

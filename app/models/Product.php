@@ -28,8 +28,9 @@ class Product {
             // Filtro: búsqueda por texto (insensible a mayúsculas/minúsculas)
             $query = trim((string)$query);
             if ($query !== '') {
-                $sql .= " AND (LOWER(p.name) LIKE LOWER(?) OR LOWER(p.description) LIKE LOWER(?))";
+                $sql .= " AND (LOWER(p.name) LIKE LOWER(?) OR LOWER(p.short_desc) LIKE LOWER(?) OR LOWER(p.long_desc) LIKE LOWER(?))";
                 $like = "%{$query}%";
+                $params[] = $like;
                 $params[] = $like;
                 $params[] = $like;
             }
@@ -82,16 +83,18 @@ class Product {
         if (!empty($data['id'])) {
             $sets = [
                 'name' => 'name=:name',
-                'description' => 'description=:description',
+                'short_desc' => 'short_desc=:short_desc',
+                'long_desc' => 'long_desc=:long_desc',
                 'price' => 'price=:price',
                 'stock' => 'stock=:stock',
                 'category_id' => 'category_id=:category_id',
                 'image_url' => 'image_url=:image_url',
+                'is_featured' => 'is_featured=:is_featured',
                 'is_active' => 'is_active=:is_active',
             ];
             $sql = 'UPDATE products SET ' . implode(', ', $sets) . ' WHERE id=:id';
         } else {
-            $cols = ['name','description','price','stock','category_id','image_url','is_active'];
+            $cols = ['name','short_desc','long_desc','price','stock','category_id','image_url','is_featured','is_active'];
             $placeholders = array_map(fn($c) => ':' . $c, $cols);
             $sql = 'INSERT INTO products (' . implode(', ', $cols) . ') VALUES (' . implode(', ', $placeholders) . ')';
         }
@@ -102,11 +105,13 @@ class Product {
         $isUpdate = !empty($data['id']);
         $params = [
             ':name' => $data['name'],
-            ':description' => $data['description'] ?? '',
+            ':short_desc' => $data['short_desc'] ?? '',
+            ':long_desc' => $data['long_desc'] ?? '',
             ':price' => $data['price'],
             ':stock' => $data['stock'],
             ':category_id' => $data['category_id'] ?? null,
             ':image_url' => $data['image_url'] ?? '',
+            ':is_featured' => isset($data['is_featured']) ? (int)$data['is_featured'] : 0,
             ':is_active' => isset($data['is_active']) ? (int)$data['is_active'] : 1,
         ];
         if ($isUpdate) {
@@ -181,20 +186,39 @@ class Product {
     }
 
     /**
-     * Get featured products for suggestions (when no search results)
+     * Get featured products (is_featured = 1) or random if no featured
      */
     public static function getFeatured($limit = 4) {
         try {
             $pdo = db_connect();
+            
+            // Primero intentar obtener productos destacados
             $st = $pdo->prepare("SELECT p.*, c.name AS category_name 
                                 FROM products p 
                                 LEFT JOIN categories c ON c.id = p.category_id 
-                                WHERE p.is_active = 1 AND p.stock > 0 
-                                ORDER BY RAND() 
+                                WHERE p.is_active = 1 AND p.stock > 0 AND p.is_featured = 1
+                                ORDER BY p.created_at DESC 
                                 LIMIT :limit");
             $st->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
             $st->execute();
-            return $st->fetchAll(PDO::FETCH_ASSOC);
+            $featured = $st->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Si no hay suficientes destacados, completar con aleatorios
+            if (count($featured) < $limit) {
+                $remaining = $limit - count($featured);
+                $st = $pdo->prepare("SELECT p.*, c.name AS category_name 
+                                    FROM products p 
+                                    LEFT JOIN categories c ON c.id = p.category_id 
+                                    WHERE p.is_active = 1 AND p.stock > 0 AND p.is_featured = 0
+                                    ORDER BY RAND() 
+                                    LIMIT :limit");
+                $st->bindValue(':limit', (int)$remaining, PDO::PARAM_INT);
+                $st->execute();
+                $random = $st->fetchAll(PDO::FETCH_ASSOC);
+                $featured = array_merge($featured, $random);
+            }
+            
+            return $featured;
         } catch (PDOException $e) {
             error_log("Error en Product::getFeatured() - " . $e->getMessage());
             return [];

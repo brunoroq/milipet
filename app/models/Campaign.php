@@ -7,7 +7,7 @@ class Campaign {
      */
     public static function latest($limit = 10) {
         $pdo = db_connect();
-        $stmt = $pdo->prepare("SELECT * FROM campaigns WHERE is_active=1 AND date >= CURRENT_DATE ORDER BY date ASC LIMIT :limit");
+        $stmt = $pdo->prepare("SELECT * FROM campaigns WHERE is_active=1 AND (start_date IS NULL OR start_date <= CURRENT_DATE) AND (end_date IS NULL OR end_date >= CURRENT_DATE) ORDER BY start_date ASC LIMIT :limit");
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
@@ -18,7 +18,7 @@ class Campaign {
      */
     public static function all() {
         $pdo = db_connect();
-        return $pdo->query("SELECT * FROM campaigns ORDER BY date DESC")->fetchAll();
+        return $pdo->query("SELECT * FROM campaigns ORDER BY created_at DESC")->fetchAll();
     }
 
     /**
@@ -41,30 +41,26 @@ class Campaign {
             $sql = "UPDATE campaigns SET 
                     title = :title,
                     description = :description,
-                    date = :date,
-                    location = :location,
-                    foundation = :foundation,
-                    image_url = :image_url,
-                    contact_info = :contact_info,
+                    banner_image = :banner_image,
+                    start_date = :start_date,
+                    end_date = :end_date,
                     is_active = :is_active
                     WHERE id = :id";
         } else {
             $sql = "INSERT INTO campaigns 
-                    (title, description, date, location, foundation, image_url, contact_info, is_active) 
+                    (title, description, banner_image, start_date, end_date, is_active) 
                     VALUES 
-                    (:title, :description, :date, :location, :foundation, :image_url, :contact_info, :is_active)";
+                    (:title, :description, :banner_image, :start_date, :end_date, :is_active)";
         }
 
         $stmt = $pdo->prepare($sql);
         
         $params = [
             ':title' => $data['title'],
-            ':description' => $data['description'],
-            ':date' => $data['date'],
-            ':location' => $data['location'],
-            ':foundation' => $data['foundation'],
-            ':image_url' => $data['image_url'] ?? '',
-            ':contact_info' => $data['contact_info'] ?? '',
+            ':description' => $data['description'] ?? '',
+            ':banner_image' => $data['banner_image'] ?? null,
+            ':start_date' => $data['start_date'] ?? null,
+            ':end_date' => $data['end_date'] ?? null,
             ':is_active' => isset($data['is_active']) ? 1 : 0
         ];
 
@@ -86,15 +82,15 @@ class Campaign {
     }
 
     /**
-     * Get upcoming campaigns (within next 30 days)
+     * Get upcoming campaigns (starting within next X days)
      */
     public static function upcoming($days = 30) {
         $pdo = db_connect();
         $stmt = $pdo->prepare(
             "SELECT * FROM campaigns 
             WHERE is_active = 1 
-            AND date BETWEEN CURRENT_DATE AND DATE_ADD(CURRENT_DATE, INTERVAL :days DAY)
-            ORDER BY date ASC"
+            AND start_date BETWEEN CURRENT_DATE AND DATE_ADD(CURRENT_DATE, INTERVAL :days DAY)
+            ORDER BY start_date ASC"
         );
         $stmt->bindValue(':days', $days, PDO::PARAM_INT);
         $stmt->execute();
@@ -102,31 +98,16 @@ class Campaign {
     }
 
     /**
-     * Get campaigns by foundation
+     * Get currently active campaigns (between start_date and end_date)
      */
-    public static function byFoundation($foundation) {
-        $pdo = db_connect();
-        $stmt = $pdo->prepare(
-            "SELECT * FROM campaigns 
-            WHERE foundation = :foundation 
-            AND is_active = 1 
-            ORDER BY date DESC"
-        );
-        $stmt->execute([':foundation' => $foundation]);
-        return $stmt->fetchAll();
-    }
-
-    /**
-     * Get list of active foundations
-     */
-    public static function getFoundations() {
+    public static function current() {
         $pdo = db_connect();
         return $pdo->query(
-            "SELECT DISTINCT foundation 
-            FROM campaigns 
-            WHERE foundation IS NOT NULL 
-            AND foundation != '' 
-            ORDER BY foundation"
-        )->fetchAll(PDO::FETCH_COLUMN);
+            "SELECT * FROM campaigns 
+            WHERE is_active = 1 
+            AND (start_date IS NULL OR start_date <= CURRENT_DATE)
+            AND (end_date IS NULL OR end_date >= CURRENT_DATE)
+            ORDER BY start_date DESC"
+        )->fetchAll();
     }
 }

@@ -5,7 +5,8 @@
   <h2>Nuevo / Editar producto</h2>
   <input type="hidden" name="id" id="prod-id">
   <label>Nombre <input type="text" name="name" id="prod-name" required></label>
-  <label>Descripción <textarea name="description" id="prod-desc"></textarea></label>
+  <label>Descripción Corta <input type="text" name="short_desc" id="prod-short-desc" maxlength="255" placeholder="Breve descripción para listados"></label>
+  <label>Descripción Completa <textarea name="long_desc" id="prod-long-desc" rows="5" placeholder="Descripción detallada del producto"></textarea></label>
   <div class="row">
     <label>Precio <input type="number" name="price" id="prod-price" step="1" min="0" required></label>
     <label>
@@ -38,7 +39,8 @@
       document.addEventListener('DOMContentLoaded', function() {
         const old = <?php echo json_encode($_SESSION['old']); ?>;
         if (old.name) document.getElementById('prod-name').value = old.name;
-        if (old.description) document.getElementById('prod-desc').value = old.description;
+        if (old.short_desc) document.getElementById('prod-short-desc').value = old.short_desc;
+        if (old.long_desc) document.getElementById('prod-long-desc').value = old.long_desc;
         if (old.price) document.getElementById('prod-price').value = old.price;
         if (old.stock) document.getElementById('prod-stock').value = old.stock;
         if (old.image_url) document.getElementById('prod-img').value = old.image_url;
@@ -48,6 +50,7 @@
           if (radio) radio.checked = true;
         }
         if (old.is_active) document.getElementById('prod-active').checked = true;
+        if (old.is_featured) document.getElementById('prod-featured').checked = true;
       });
       <?php unset($_SESSION['old']); ?>
     </script>
@@ -75,6 +78,7 @@
     <input type="file" name="image_file" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
   </label>
   <img id="preview" alt="" style="max-width:160px;border-radius:8px;margin-top:8px;display:none;">
+  <label><input type="checkbox" name="is_featured" id="prod-featured"> Producto destacado</label>
   <label><input type="checkbox" name="is_active" id="prod-active" checked> Activo</label>
   <button class="btn" type="submit">Guardar</button>
 </form>
@@ -87,6 +91,7 @@
       <th>Categoría</th>
       <th>Precio</th>
       <th>Stock</th>
+      <th>Destacado</th>
       <th>Estado</th>
       <th></th>
     </tr>
@@ -103,6 +108,7 @@
             <?php echo (int)$p['stock']; ?>
           </span>
         </td>
+        <td><?php echo !empty($p['is_featured']) ? '⭐' : '-'; ?></td>
         <td><?php echo $p['is_active'] ? 'Activo' : 'Oculto'; ?></td>
         <td class="row">
           <button class="btn-outline" onclick='prefill(<?php echo json_encode($p, JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP); ?>)'>Editar</button>
@@ -122,12 +128,14 @@
 function prefill(p) {
   document.getElementById('prod-id').value = p.id;
   document.getElementById('prod-name').value = p.name;
-  document.getElementById('prod-desc').value = p.description || '';
+  document.getElementById('prod-short-desc').value = p.short_desc || '';
+  document.getElementById('prod-long-desc').value = p.long_desc || '';
   document.getElementById('prod-price').value = p.price || 0;
   document.getElementById('prod-stock').value = p.stock || 0;
   document.getElementById('prod-cat').value = p.category_id || '';
   document.getElementById('prod-img').value = p.image_url || '';
   document.getElementById('prod-current-img').value = p.image_url || '';
+  document.getElementById('prod-featured').checked = p.is_featured == 1;
   document.getElementById('prod-active').checked = p.is_active == 1;
   const preview = document.getElementById('preview');
   if (p.image_url) { preview.src = p.image_url; preview.style.display='block'; } else { preview.style.display='none'; }
