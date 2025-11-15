@@ -2,7 +2,7 @@
 // Información de la tienda
 const STORE_NAME = 'MiliPet';
 const STORE_ADDRESS = 'Pumay, Maipú, Región Metropolitana';
-const STORE_PHONE = '+56 9 5458 036';
+const STORE_PHONE = '+56 9 5458036';
 const STORE_EMAIL = 'contacto@milipet.cl';
 
 // Horarios
@@ -16,7 +16,7 @@ const STORE_HOURS = [
 const SOCIAL_MEDIA = [
     'whatsapp' => [
         'url' => 'https://wa.me/5695458036',
-        'display' => '+56 9 5458 036'
+    'display' => '+56 9 5458036'
     ],
     'instagram' => [
         'url' => 'https://instagram.com/milipet.cl',

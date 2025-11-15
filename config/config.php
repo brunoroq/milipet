@@ -268,7 +268,7 @@ return [
     'store' => [
         'name'    => 'MiliPet',
         'address' => 'Maipú, Santiago',
-        'phone'   => '+56 9 5458 036',
+    'phone'   => '+56 9 5458036',
         'email'   => 'contacto@milipet.cl',
         'social'  => [
             'whatsapp'  => 'https://wa.me/5695458036',

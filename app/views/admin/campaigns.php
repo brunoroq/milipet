@@ -14,35 +14,22 @@
         <label>Descripción <textarea name="description" id="campaign-desc"></textarea></label>
         
         <div class="row">
-            <label>Fecha
-                <input type="date" name="date" id="campaign-date" required 
+            <label>Fecha de Inicio
+                <input type="date" name="start_date" id="campaign-start-date" 
                        min="<?php echo date('Y-m-d'); ?>">
             </label>
             
-            <label>Ubicación
-                <input type="text" name="location" id="campaign-location" required 
-                       placeholder="Ej: Plaza de Maipú">
+            <label>Fecha de Fin
+                <input type="date" name="end_date" id="campaign-end-date">
             </label>
         </div>
         
-        <div class="row">
-            <label>Fundación
-                <input type="text" name="foundation" id="campaign-foundation" 
-                       placeholder="Nombre de la fundación">
-            </label>
-            
-            <label>Información de Contacto
-                <input type="text" name="contact_info" id="campaign-contact" 
-                       placeholder="WhatsApp, Instagram, etc.">
-            </label>
-        </div>
-        
-        <label>Imagen (URL)
-            <input type="url" name="image_url" id="campaign-img" 
-                   placeholder="assets/img/tu-imagen.jpg">
+        <label>Banner (URL)
+            <input type="url" name="banner_image" id="campaign-banner" 
+                   placeholder="assets/img/banner-campana.jpg">
         </label>
         
-        <input type="hidden" name="current_image_url" id="campaign-current-img">
+        <input type="hidden" name="current_banner_image" id="campaign-current-banner">
         
         <label>Subir imagen (JPG/PNG, máx 3MB)
             <input type="file" name="image_file" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
@@ -71,21 +58,26 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>Fecha</th>
+                    <th>Inicio</th>
+                    <th>Fin</th>
                     <th>Título</th>
-                    <th>Ubicación</th>
-                    <th>Fundación</th>
+                    <th>Descripción</th>
                     <th>Estado</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($campaigns as $c): ?>
-                    <tr class="<?php echo strtotime($c['date']) < strtotime('today') ? 'past-event' : ''; ?>">
-                        <td><?php echo date('d/m/Y', strtotime($c['date'])); ?></td>
+                    <?php 
+                    $isPast = !empty($c['end_date']) && strtotime($c['end_date']) < strtotime('today');
+                    $isCurrent = (empty($c['start_date']) || strtotime($c['start_date']) <= time()) && 
+                                 (empty($c['end_date']) || strtotime($c['end_date']) >= strtotime('today'));
+                    ?>
+                    <tr class="<?php echo $isPast ? 'past-event' : ($isCurrent ? 'current-event' : ''); ?>">
+                        <td><?php echo !empty($c['start_date']) ? date('d/m/Y', strtotime($c['start_date'])) : '-'; ?></td>
+                        <td><?php echo !empty($c['end_date']) ? date('d/m/Y', strtotime($c['end_date'])) : '-'; ?></td>
                         <td><?php echo htmlspecialchars($c['title']); ?></td>
-                        <td><?php echo htmlspecialchars($c['location']); ?></td>
-                        <td><?php echo htmlspecialchars($c['foundation'] ?? '-'); ?></td>
+                        <td><?php echo htmlspecialchars(mb_substr($c['description'] ?? '', 0, 50)); ?><?php echo mb_strlen($c['description'] ?? '') > 50 ? '...' : ''; ?></td>
                         <td>
                             <span class="status-badge <?php echo $c['is_active'] ? 'active' : 'inactive'; ?>">
                                 <?php echo $c['is_active'] ? 'Activa' : 'Inactiva'; ?>
@@ -124,6 +116,10 @@
     background-color: #f5f5f5;
 }
 
+.current-event {
+    background-color: #e8f5e9;
+}
+
 .status-badge {
     display: inline-block;
     padding: 0.25rem 0.75rem;
@@ -155,17 +151,15 @@ function prefillCampaign(c) {
     document.getElementById('campaign-id').value = c.id;
     document.getElementById('campaign-title').value = c.title;
     document.getElementById('campaign-desc').value = c.description || '';
-    document.getElementById('campaign-date').value = c.date;
-    document.getElementById('campaign-location').value = c.location || '';
-    document.getElementById('campaign-foundation').value = c.foundation || '';
-    document.getElementById('campaign-contact').value = c.contact_info || '';
-    document.getElementById('campaign-img').value = c.image_url || '';
-    document.getElementById('campaign-current-img').value = c.image_url || '';
+    document.getElementById('campaign-start-date').value = c.start_date || '';
+    document.getElementById('campaign-end-date').value = c.end_date || '';
+    document.getElementById('campaign-banner').value = c.banner_image || '';
+    document.getElementById('campaign-current-banner').value = c.banner_image || '';
     document.getElementById('campaign-active').checked = c.is_active == 1;
     
     const preview = document.getElementById('preview');
-    if (c.image_url) {
-        preview.src = c.image_url;
+    if (c.banner_image) {
+        preview.src = c.banner_image;
         preview.style.display = 'block';
     } else {
         preview.style.display = 'none';
