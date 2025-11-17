@@ -10,14 +10,14 @@ class AuthController {
   private function hitAttempt($key){ $d = $_SESSION[$key] ?? ['n'=>0,'t'=>0]; $d['n']++; $d['t']=time(); $_SESSION[$key]=$d; }
   private function clearAttempts($key){ unset($_SESSION[$key]); }
 
-  // Formulario de login administración
+  // Formulario de login unificado
   public function adminLoginForm() {
-    render('auth/admin_login', [
+    render('auth/login', [
       'csrf' => csrf_token(),
     ]);
   }
 
-  // Procesa login administración
+  // Procesa login (unificado para todos los roles)
   public function adminLogin() {
     csrf_check();
     $email = trim($_POST['email'] ?? '');
@@ -26,7 +26,7 @@ class AuthController {
     $key   = $this->throttleKey($email);
     if ($this->tooManyAttempts($key)) {
       flash('error','Credenciales inválidas.');
-      header('Location: /?r=auth/admin_login');
+      header('Location: /?r=auth/login');
       exit;
     }
 
@@ -34,7 +34,7 @@ class AuthController {
     if ($email === '' || $pass === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
       if (defined('APP_ENV') && APP_ENV === 'dev') { error_log('[LOGIN] invalid input email/pass'); }
       flash('error','Credenciales inválidas.');
-      header('Location: /?r=auth/admin_login');
+      header('Location: /?r=auth/login');
       exit;
     }
 
@@ -44,7 +44,7 @@ class AuthController {
     } catch (Throwable $e) {
       if (defined('APP_ENV') && APP_ENV === 'dev') { error_log('[LOGIN] DB error: '.$e->getMessage()); }
       flash('error','No fue posible autenticar. Inténtalo nuevamente.');
-      header('Location: /?r=auth/admin_login');
+      header('Location: /?r=auth/login');
       exit;
     }
 
@@ -57,18 +57,18 @@ class AuthController {
     if (!$u || !$pass_ok || (int)$u['is_active'] !== 1) {
       $this->hitAttempt($key);
       flash('error','Credenciales inválidas.');
-      header('Location: /?r=auth/admin_login');
+      header('Location: /?r=auth/login');
       exit;
     }
 
-    // Validar que sea admin
-    if (!isset($u['role_name']) || $u['role_name'] !== 'admin') {
+    // Validar que tenga un rol válido
+    if (!isset($u['role_name']) || trim($u['role_name']) === '') {
       flash('error','Credenciales inválidas.');
-      header('Location: /?r=auth/admin_login');
+      header('Location: /?r=auth/login');
       exit;
     }
 
-    // Login exitoso
+    // Login exitoso - configurar sesión
     session_regenerate_id(true);
     $_SESSION['user_id'] = (int)$u['id'];
     $_SESSION['uid']  = (int)$u['id']; // compatibilidad
@@ -94,10 +94,26 @@ class AuthController {
         'samesite' => 'Lax',
       ]);
     }
+    
     if (defined('APP_ENV') && APP_ENV === 'dev') {
       error_log('[LOGIN OK] sid='.session_id().' uid='.$_SESSION['user_id'].' role='.$_SESSION['role']);
     }
-    header('Location: /?r=admin/dashboard');
+    
+    // Redirigir según el rol del usuario
+    $role = strtolower($u['role_name']);
+    
+    if ($role === 'admin' || $role === 'editor') {
+      // Admin/Editor → Panel de administración
+      header('Location: /?r=admin/dashboard');
+    } elseif ($role === 'cliente') {
+      // Cliente → Home público (o página de cuenta si existe)
+      flash('success', '¡Bienvenido de vuelta, ' . htmlspecialchars($u['name']) . '!');
+      header('Location: /?r=home');
+    } else {
+      // Rol desconocido → Home por defecto
+      flash('success', 'Sesión iniciada correctamente.');
+      header('Location: /?r=home');
+    }
     exit;
   }
 

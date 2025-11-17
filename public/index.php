@@ -10,6 +10,7 @@ if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../app/helpers/auth_helper.php';
 require_once __DIR__ . '/../app/helpers/validation.php';
+require_once __DIR__ . '/../app/helpers/content_helper.php';
 require_once __DIR__ . '/../config/config.php';
 // Generate a CSRF token for the session if not present
 if (empty($_SESSION['csrf'])) {
@@ -21,6 +22,7 @@ if (empty($_SESSION['csrf'])) {
     }
 }
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../app/models/ContentBlock.php';
 require_once __DIR__ . '/../app/controllers/AuthController.php';
 require_once __DIR__ . '/../app/controllers/AdminController.php';
 
@@ -36,15 +38,23 @@ if (!isset($_GET['r']) && isset($_GET['q'])) {
 }
 
 function render($view, $vars = []) {
-    // Si la vista es admin, utilizar header específico y proteger el acceso
+    // Si la vista es admin (PERO NO auth), utilizar layout completamente separado
     $isAdmin = strpos($view, 'admin/') === 0;
-    if ($isAdmin) {
+    $isAuth = strpos($view, 'auth/') === 0;
+    
+    // Las vistas auth/* siempre usan layout público
+    if ($isAdmin && !$isAuth) {
         // Forzar autenticación para cualquier render admin
         require_auth();
         extract($vars);
-        include __DIR__ . '/../app/views/layout/admin_header.php';
+        
+        // Capturar el contenido de la vista en un buffer
+        ob_start();
         include __DIR__ . '/../app/views/' . $view . '.php';
-        include __DIR__ . '/../app/views/layout/footer.php';
+        $content = ob_get_clean();
+        
+        // Incluir el layout admin con el contenido
+        include __DIR__ . '/../app/views/layout/admin_layout.php';
         return;
     }
 
@@ -60,23 +70,17 @@ function render($view, $vars = []) {
 
 $route = $_GET['r'] ?? 'home';
 
-// Redirecciones legacy de login antiguo
-if ($route === 'login' || $route === 'auth/login') {
-    header('Location: ' . url(['r' => 'auth/admin_login']));
+// Redirecciones legacy - todas las variantes apuntan a auth/login
+if ($route === 'login' || $route === 'auth/admin_login') {
+    header('Location: ' . url(['r' => 'auth/login']));
     exit;
 }
 
-// Rutas auth administración antes del switch general
-if ($route === 'auth/admin_login') { (new AuthController())->adminLoginForm(); exit; }
-if ($route === 'auth/admin_login_post' && $_SERVER['REQUEST_METHOD'] === 'POST') { (new AuthController())->adminLogin(); exit; }
+// Rutas auth unificadas
+if ($route === 'auth/login') { (new AuthController())->adminLoginForm(); exit; }
+if ($route === 'auth/login_post' && $_SERVER['REQUEST_METHOD'] === 'POST') { (new AuthController())->adminLogin(); exit; }
 if ($route === 'auth/logout') { (new AuthController())->logout(); exit; }
 $routeParts = explode('/', $route);
-
-// Redirigir rutas antiguas a las nuevas
-if ($route === 'login') {
-    header('Location: ?r=auth/login');
-    exit;
-}
 
 // Manejar rutas con prefijos
 switch ($routeParts[0]) {
@@ -90,6 +94,15 @@ switch ($routeParts[0]) {
             $controller->saveProduct();
         } elseif (count($routeParts) >= 3 && $routeParts[1] === 'product' && $routeParts[2] === 'delete') {
             $controller->deleteProduct();
+        } elseif ($route === 'admin/content') {
+            // Gestión de contenido (mini-CMS)
+            $controller->contentIndex();
+        } elseif ($route === 'admin/content_edit') {
+            // Editar un bloque de contenido
+            $controller->contentEdit();
+        } elseif ($route === 'admin/content_update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Guardar cambios en contenido
+            $controller->contentUpdate();
         } else {
             // Manejar rutas de dos niveles (admin/dashboard, admin/products)
             $action = $routeParts[1] ?? 'dashboard';

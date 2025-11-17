@@ -156,7 +156,28 @@ class AdminController {
     if (defined('APP_ENV') && APP_ENV === 'dev') {
       error_log('[DASHBOARD] sid='.session_id().' uid='.($_SESSION['user_id']??'null').' role='.($_SESSION['role']??'null'));
     }
-    render('admin/dashboard'); 
+    
+    // Obtener estadísticas para el dashboard
+    $products = Product::allAdmin();
+    $totalProducts = count($products);
+    
+    // Contar productos con stock bajo (usando threshold individual de cada producto)
+    $lowStockProducts = array_filter($products, function($p) {
+        $threshold = $p['low_stock_threshold'] ?? 5;
+        return $p['stock'] <= $threshold;
+    });
+    $lowStockCount = count($lowStockProducts);
+    
+    // Flash messages
+    $flash = $_SESSION['flash'] ?? null; 
+    unset($_SESSION['flash']);
+    
+    render('admin/dashboard', [
+        'totalProducts' => $totalProducts,
+        'lowStockCount' => $lowStockCount,
+        'campaignsCount' => 0, // TODO: implementar cuando exista modelo de campañas
+        'flash' => $flash
+    ]); 
   }
 
   public function products() {
@@ -164,107 +185,210 @@ class AdminController {
     $categories = Category::all();
     $flash = $_SESSION['flash'] ?? null; unset($_SESSION['flash']);
     
-    // Get low stock products (5 or less units)
+    // Get low stock products (usando threshold individual)
     $lowStockProducts = array_filter($products, function($p) {
-        return $p['stock'] <= 5;
+        $threshold = $p['low_stock_threshold'] ?? 5;
+        return $p['stock'] <= $threshold;
     });
     
-    if (count($lowStockProducts) > 0) {
-        if (!$flash) $flash = ['type' => 'error', 'messages' => []];
-        $flash['messages'][] = sprintf(
-            'Hay %d producto(s) con stock bajo (5 o menos unidades).', 
-            count($lowStockProducts)
-        );
-    }
+    $lowStockCount = count($lowStockProducts);
     
     render('admin/products', [
         'products' => $products, 
         'categories' => $categories, 
         'flash' => $flash,
-        'lowStockProducts' => $lowStockProducts
+        'lowStockCount' => $lowStockCount
+    ]);
+  }
+  
+  public function low_stock() {
+    $products = Product::allAdmin();
+    $categories = Category::all();
+    
+    // Filter products with stock <= threshold individual
+    $lowStockProducts = array_filter($products, function($p) {
+        $threshold = $p['low_stock_threshold'] ?? 5;
+        return $p['stock'] <= $threshold;
+    });
+    
+    // Sort by stock ascending (most critical first)
+    usort($lowStockProducts, function($a, $b) {
+        return $a['stock'] <=> $b['stock'];
+    });
+    
+    render('admin/low_stock', [
+        'products' => $lowStockProducts,
+        'categories' => $categories
     ]);
   }
 
   public function saveProduct() {
     $this->checkCsrf();
+    
+    // Recoger datos del formulario
     $data = [
       'id' => $_POST['id'] ?? null,
-      'name' => $_POST['name'] ?? '',
-      'short_desc' => $_POST['short_desc'] ?? '',
-      'long_desc' => $_POST['long_desc'] ?? '',
-      'price' => (float)($_POST['price'] ?? 0),
-      'stock' => (int)($_POST['stock'] ?? 0),
+      'name' => trim($_POST['name'] ?? ''),
+      'short_desc' => trim($_POST['short_desc'] ?? ''),
+      'long_desc' => trim($_POST['long_desc'] ?? ''),
+      'price' => $_POST['price'] ?? '',
+      'stock' => $_POST['stock'] ?? '',
+      'low_stock_threshold' => $_POST['stock_alert'] ?? 5,
       'species' => $_POST['species'] ?? null,
-      'category_id' => isset($_POST['category_id']) && $_POST['category_id']!=='' ? (int)$_POST['category_id'] : null,
-      'image_url' => $_POST['image_url'] ?? '',
+      'category_id' => $_POST['category_id'] ?? '',
+      'image_url' => trim($_POST['image_url'] ?? ''),
       'is_featured' => isset($_POST['is_featured']) ? 1 : 0,
       'is_active' => isset($_POST['is_active']) ? 1 : 0,
     ];
-    // Validación básica
-    $errors = [];
-    if (trim($data['name']) === '') $errors[] = 'El nombre es obligatorio.';
-    if ($data['price'] === '' || !is_numeric($data['price']) || $data['price'] < 0) $errors[] = 'Precio inválido.';
-    if (!is_int($data['stock']) || $data['stock'] < 0) $errors[] = 'Stock inválido.';
     
-    // Validate image URL (only if provided and not uploading file)
+    // ========== VALIDACIONES ==========
+    
+    // 1. Nombre obligatorio
+    if ($data['name'] === '') {
+      flash('error', 'Debes ingresar un nombre para el producto.');
+      $_SESSION['old'] = $data;
+      header('Location: ?r=admin/products');
+      exit;
+    }
+    
+    // 2. Categoría obligatoria
+    if ($data['category_id'] === '' || $data['category_id'] === null) {
+      flash('error', 'Debes seleccionar una categoría para el producto.');
+      $_SESSION['old'] = $data;
+      header('Location: ?r=admin/products');
+      exit;
+    }
+    $data['category_id'] = (int)$data['category_id'];
+    
+    // 3. NORMALIZACIÓN DE PRECIO (formato chileno flexible)
+    // Permite formatos: 40000, 40.000, 40,000
+    $rawPrice = trim($data['price']);
+    
+    // Eliminar todo excepto dígitos (puntos, comas, espacios, etc.)
+    $normalizedPrice = preg_replace('/[^\d]/', '', $rawPrice);
+    
+    // Validar que queden solo dígitos
+    if ($normalizedPrice === '' || !ctype_digit($normalizedPrice)) {
+      flash('error', 'El precio debe ser un número entero en pesos chilenos (sin símbolos). Ejemplos válidos: 40000, 40.000, 40,000');
+      $_SESSION['old'] = $data;
+      header('Location: ?r=admin/products');
+      exit;
+    }
+    
+    // Convertir a entero
+    $data['price'] = (int)$normalizedPrice;
+    
+    // Validar que el precio sea mayor a 0
+    if ($data['price'] <= 0) {
+      flash('error', 'El precio debe ser mayor a cero.');
+      $_SESSION['old'] = $data;
+      header('Location: ?r=admin/products');
+      exit;
+    }
+    
+    // 4. Stock: debe ser número entero >= 0
+    if (!ctype_digit(trim($data['stock'])) || (int)$data['stock'] < 0) {
+      flash('error', 'El stock debe ser un número entero mayor o igual a 0.');
+      $_SESSION['old'] = $data;
+      header('Location: ?r=admin/products');
+      exit;
+    }
+    $data['stock'] = (int)$data['stock'];
+    
+    // 4.5 Alerta de stock bajo: debe ser número entero >= 1
+    if (!ctype_digit(trim($data['low_stock_threshold'])) || (int)$data['low_stock_threshold'] < 1) {
+      flash('error', 'La alerta de stock bajo debe ser un número entero mayor o igual a 1.');
+      $_SESSION['old'] = $data;
+      header('Location: ?r=admin/products');
+      exit;
+    }
+    $data['low_stock_threshold'] = (int)$data['low_stock_threshold'];
+    
+    // 5. Validar imagen URL (solo si no se está subiendo archivo)
     if (!isset($_FILES['image_file']) || $_FILES['image_file']['error'] === UPLOAD_ERR_NO_FILE) {
-      $imgInput = $data['image_url'];
-      $validatedImage = validate_product_image($imgInput, $errors);
-      if ($validatedImage === null) {
-        // Validation failed
-        $_SESSION['flash'] = ['type'=>'error','messages'=>$errors];
-        $_SESSION['old'] = $data;
-        $products = Product::allAdmin();
-        $categories = Category::all();
-        render('admin/products', ['products'=>$products, 'categories'=>$categories, 'old'=>$data, 'flash'=>$_SESSION['flash']]);
-        unset($_SESSION['flash'], $_SESSION['old']);
-        return;
+      if ($data['image_url'] !== '') {
+        $errors = [];
+        $validatedImage = validate_product_image($data['image_url'], $errors);
+        if ($validatedImage === null) {
+          flash('error', implode(' ', $errors));
+          $_SESSION['old'] = $data;
+          header('Location: ?r=admin/products');
+          exit;
+        }
+        $data['image_url'] = $validatedImage;
       }
-      $data['image_url'] = $validatedImage;
     }
     
-    if (!empty($errors)) {
-      // devolver a la vista con errores y los datos previos
-      $_SESSION['flash'] = ['type'=>'error','messages'=>$errors];
-      $products = Product::allAdmin();
-      $categories = Category::all();
-      render('admin/products', ['products'=>$products, 'categories'=>$categories, 'old'=>$data, 'flash'=>$_SESSION['flash']]);
-      unset($_SESSION['flash']);
-      return;
-    }
-    // Upload block
+    // ========== SUBIDA DE ARCHIVO ==========
     if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] !== UPLOAD_ERR_NO_FILE) {
       $file = $_FILES['image_file'];
       if ($file['error'] === UPLOAD_ERR_OK) {
         $max = 3*1024*1024;
-        if ($file['size'] <= $max) {
-          if (function_exists('finfo_open')) { $finfo=new finfo(FILEINFO_MIME_TYPE); $mime=$finfo->file($file['tmp_name']); }
-          else { $mime = mime_content_type($file['tmp_name']); }
-          $allowed=['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
-          if (isset($allowed[$mime])) {
-            $ext=$allowed[$mime];
-            $baseName = pathinfo($file['name'], PATHINFO_FILENAME);
-            $safe = $this->sanitize_file_name($baseName);
-            $unique = $safe.'-'.bin2hex(random_bytes(4)).'.'.$ext;
-            $dir = (defined('PUBLIC_PATH') ? PUBLIC_PATH : (__DIR__ . '/../../public')).'/assets/img';
-            if(!is_dir($dir)){ @mkdir($dir, 0775, true); }
-            $target = $dir.'/'.$unique;
-            if (move_uploaded_file($file['tmp_name'],$target)) {
-              if (!empty($data['id']) && !empty($_POST['current_image_url'])) {
-                $prev=$_POST['current_image_url'];
-                if (strpos($prev,'assets/img/')===0) {
-                  $prevPathBase = defined('PUBLIC_PATH') ? PUBLIC_PATH : (__DIR__.'/../../public');
-                  $prevPath = rtrim($prevPathBase,'/').'/'.$prev; if(is_file($prevPath)){ @unlink($prevPath); }
-                }
+        if ($file['size'] > $max) {
+          flash('error', 'La imagen es demasiado grande. Máximo 3 MB.');
+          $_SESSION['old'] = $data;
+          header('Location: ?r=admin/products');
+          exit;
+        }
+        
+        if (function_exists('finfo_open')) { 
+          $finfo = new finfo(FILEINFO_MIME_TYPE); 
+          $mime = $finfo->file($file['tmp_name']); 
+        } else { 
+          $mime = mime_content_type($file['tmp_name']); 
+        }
+        
+        $allowed = ['image/jpeg'=>'jpg', 'image/png'=>'png', 'image/webp'=>'webp'];
+        if (!isset($allowed[$mime])) {
+          flash('error', 'Formato de imagen no válido. Usa JPG, PNG o WebP.');
+          $_SESSION['old'] = $data;
+          header('Location: ?r=admin/products');
+          exit;
+        }
+        
+        $ext = $allowed[$mime];
+        $baseName = pathinfo($file['name'], PATHINFO_FILENAME);
+        $safe = $this->sanitize_file_name($baseName);
+        $unique = $safe.'-'.bin2hex(random_bytes(4)).'.'.$ext;
+        $dir = (defined('PUBLIC_PATH') ? PUBLIC_PATH : (__DIR__ . '/../../public')).'/assets/img';
+        
+        if (!is_dir($dir)) { 
+          @mkdir($dir, 0775, true); 
+        }
+        
+        $target = $dir.'/'.$unique;
+        if (move_uploaded_file($file['tmp_name'], $target)) {
+          // Eliminar imagen anterior si existe
+          if (!empty($data['id']) && !empty($_POST['current_image_url'])) {
+            $prev = $_POST['current_image_url'];
+            if (strpos($prev, 'assets/img/') === 0) {
+              $prevPathBase = defined('PUBLIC_PATH') ? PUBLIC_PATH : (__DIR__.'/../../public');
+              $prevPath = rtrim($prevPathBase, '/').'/'.$prev; 
+              if (is_file($prevPath)) { 
+                @unlink($prevPath); 
               }
-              $data['image_url']='assets/img/'.$unique;
             }
           }
+          $data['image_url'] = 'assets/img/'.$unique;
+        } else {
+          flash('error', 'No se pudo subir la imagen. Intenta nuevamente.');
+          $_SESSION['old'] = $data;
+          header('Location: ?r=admin/products');
+          exit;
         }
       }
     }
-    $id = Product::save($data);
-    $_SESSION['flash'] = ['type'=>'success','messages'=>['Producto guardado con éxito.']];
+    
+    // ========== GUARDAR EN BASE DE DATOS ==========
+    try {
+      $id = Product::save($data);
+      flash('success', '<i class="fas fa-check-circle me-2"></i><strong>¡Éxito!</strong> El producto se guardó correctamente.');
+      unset($_SESSION['old']);
+    } catch (Exception $e) {
+      flash('error', '<i class="fas fa-times-circle me-2"></i><strong>Error:</strong> ' . htmlspecialchars($e->getMessage()));
+      $_SESSION['old'] = $data;
+    }
+    
     header('Location: ?r=admin/products');
     exit;
   }
@@ -328,6 +452,104 @@ class AdminController {
     ]];
     
     header('Location: ?r=admin/products');
+    exit;
+  }
+
+  // ========== GESTIÓN DE CONTENIDO (mini-CMS) ==========
+
+  /**
+   * Lista de secciones o bloques por sección
+   */
+  public function contentIndex() {
+    $section = $_GET['section'] ?? null;
+
+    if ($section) {
+      // Vista con solo los bloques de esa sección
+      $blocks = ContentBlock::bySection($section);
+      render('admin/content/list', [
+        'section' => $section,
+        'blocks'  => $blocks,
+      ]);
+      return;
+    }
+
+    // Vista con tabla/resumen de secciones
+    $grouped = ContentBlock::allGroupedBySection();
+
+    // Mapea claves técnicas a nombres bonitos
+    $labels = [
+      'home'      => 'Home',
+      'about'     => 'Quiénes Somos',
+      'adoptions' => 'Adopciones',
+      'policies'  => 'Políticas y Contacto',
+      'otros'     => 'Otros',
+    ];
+
+    render('admin/content/sections', [
+      'grouped' => $grouped,
+      'labels'  => $labels,
+    ]);
+  }
+
+  /**
+   * Formulario de edición de un bloque de contenido
+   */
+  public function contentEdit() {
+    $key = $_GET['key'] ?? '';
+    
+    if (empty($key)) {
+      flash('error', 'No se especificó qué contenido editar.');
+      header('Location: ' . url(['r' => 'admin/content']));
+      exit;
+    }
+    
+    $block = ContentBlock::findByKey($key);
+    
+    if (!$block) {
+      flash('error', 'No se encontró el bloque de contenido solicitado.');
+      header('Location: ' . url(['r' => 'admin/content']));
+      exit;
+    }
+    
+    render('admin/content/edit', ['block' => $block]);
+  }
+
+  /**
+   * Procesa la actualización de un bloque de contenido
+   */
+  public function contentUpdate() {
+    $this->checkCsrf();
+    
+    $key = $_POST['content_key'] ?? '';
+    
+    if (empty($key)) {
+      flash('error', 'No se especificó qué contenido actualizar.');
+      header('Location: ' . url(['r' => 'admin/content']));
+      exit;
+    }
+    
+    $data = [
+      'content'   => $_POST['content'] ?? '',
+      'image_url' => !empty($_POST['image_url']) ? trim($_POST['image_url']) : null,
+      'is_active' => isset($_POST['is_active']) ? 1 : 0,
+    ];
+    
+    // Extraer la sección del key para redireccionar correctamente
+    $parts = explode('.', $key);
+    $sectionFromKey = $parts[0] ?? null;
+    
+    if (ContentBlock::updateByKey($key, $data)) {
+      flash('success', '<i class="fas fa-check-circle me-2"></i><strong>¡Éxito!</strong> El contenido se actualizó correctamente.');
+    } else {
+      flash('error', 'No se pudo guardar el contenido. Intenta nuevamente.');
+    }
+    
+    // Redirigir a la sección correspondiente
+    if ($sectionFromKey) {
+      header('Location: ' . url(['r' => 'admin/content', 'section' => $sectionFromKey]));
+    } else {
+      header('Location: ' . url(['r' => 'admin/content']));
+    }
     exit;
   }
 }

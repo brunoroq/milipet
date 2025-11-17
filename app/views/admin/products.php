@@ -1,4 +1,20 @@
-<?php ?><h1>Productos</h1>
+<?php ?>
+<!-- Alerta de Stock Bajo -->
+<?php if (!empty($lowStockCount) && $lowStockCount > 0): ?>
+  <div class="alert alert-warning d-flex align-items-start mb-4" role="alert">
+    <i class="fas fa-exclamation-triangle me-3 mt-1" style="font-size: 1.25rem;"></i>
+    <div class="flex-grow-1">
+      <strong>Atención:</strong>
+      Hay <?= (int)$lowStockCount ?> producto(s) con stock bajo (5 o menos unidades).
+      <a href="<?= url(['r'=>'admin/low_stock']) ?>" class="alert-link">
+        <i class="fas fa-list me-1"></i>Ver productos con stock bajo
+      </a>
+    </div>
+  </div>
+<?php endif; ?>
+
+<h1>Productos</h1>
+
 <form method="post" action="?r=admin/product/save" class="card p" enctype="multipart/form-data">
   <input type="hidden" name="_csrf" value="<?php echo htmlspecialchars($_SESSION['_csrf'] ?? ($_SESSION['csrf'] ?? '')); ?>">
   <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
@@ -8,7 +24,11 @@
   <label>Descripción Corta <input type="text" name="short_desc" id="prod-short-desc" maxlength="255" placeholder="Breve descripción para listados"></label>
   <label>Descripción Completa <textarea name="long_desc" id="prod-long-desc" rows="5" placeholder="Descripción detallada del producto"></textarea></label>
   <div class="row">
-    <label>Precio <input type="number" name="price" id="prod-price" step="1" min="0" required></label>
+    <label>
+      Precio (CLP)
+      <input type="text" name="price" id="prod-price" placeholder="Ej: 40.000" required>
+      <small class="form-text text-muted">Puedes usar puntos o comas como separadores (ej: 40000, 40.000 o 40,000).</small>
+    </label>
     <label>
       Stock 
       <div class="stock-input">
@@ -22,8 +42,9 @@
     </label>
   </div>
   <div class="stock-alerts">
-    <label><input type="number" name="stock_alert" id="prod-stock-alert" step="1" min="1" value="5"> 
+    <label><input type="number" name="stock_alert" id="prod-stock-alert" step="1" min="1" value="" placeholder="5"> 
       Alerta de stock bajo (unidades)
+      <small class="text-muted d-block">El sistema alertará cuando el stock sea igual o menor a este valor (por defecto: 5)</small>
     </label>
   </div>
   <?php if (!empty($flash)): ?>
@@ -71,8 +92,25 @@
     </select>
   </label>
   <label>Imagen (URL)
-    <input type="url" name="image_url" id="prod-img" placeholder="assets/img/tu-imagen.jpg">
+    <input type="url" name="image_url" id="prod-img" placeholder="assets/img/tu-imagen.jpg o https://...">
   </label>
+  
+  <!-- Vista previa de la imagen -->
+  <div class="mt-2" id="image-preview-container">
+    <small class="text-muted d-block mb-1">Vista previa:</small>
+    <div class="border rounded p-3 bg-light text-center" style="min-height: 120px;">
+      <img id="product-image-preview"
+           src=""
+           alt="Vista previa de la imagen"
+           class="img-fluid"
+           style="max-width: 200px; max-height: 200px; display: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <div id="preview-placeholder" class="text-muted" style="padding: 2rem 0;">
+        <i class="fas fa-image" style="font-size: 2rem; opacity: 0.3;"></i>
+        <p class="mb-0 mt-2 small">Ingresa una URL para ver la vista previa</p>
+      </div>
+    </div>
+  </div>
+  
   <input type="hidden" name="current_image_url" id="prod-current-img">
   <label>Subir imagen (JPG/PNG, máx 3MB)
     <input type="file" name="image_file" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
@@ -98,13 +136,14 @@
   </thead>
   <tbody>
     <?php foreach ($products as $p): ?>
-      <tr class="<?php echo ($p['stock'] <= 5 ? 'low-stock' : ''); ?>">
+      <?php $threshold = $p['low_stock_threshold'] ?? 5; ?>
+      <tr class="<?php echo ($p['stock'] <= $threshold ? 'low-stock' : ''); ?>">
         <td><?php echo $p['id']; ?></td>
         <td><?php echo htmlspecialchars($p['name']); ?></td>
         <td><?php echo htmlspecialchars($p['category_name'] ?? ''); ?></td>
         <td>$<?php echo number_format($p['price'] ?? 0, 0, ',', '.'); ?></td>
         <td>
-          <span class="stock-badge <?php echo ($p['stock'] <= 0 ? 'out' : ($p['stock'] <= 5 ? 'low' : 'ok')); ?>">
+          <span class="stock-badge <?php echo ($p['stock'] <= 0 ? 'out' : ($p['stock'] <= $threshold ? 'low' : 'ok')); ?>">
             <?php echo (int)$p['stock']; ?>
           </span>
         </td>
@@ -130,15 +169,35 @@ function prefill(p) {
   document.getElementById('prod-name').value = p.name;
   document.getElementById('prod-short-desc').value = p.short_desc || '';
   document.getElementById('prod-long-desc').value = p.long_desc || '';
-  document.getElementById('prod-price').value = p.price || 0;
+  
+  // Formatear el precio en formato chileno (40.000)
+  const price = parseInt(p.price) || 0;
+  document.getElementById('prod-price').value = price.toLocaleString('es-CL');
+  
   document.getElementById('prod-stock').value = p.stock || 0;
+  document.getElementById('prod-stock-alert').value = p.low_stock_threshold || 5;
   document.getElementById('prod-cat').value = p.category_id || '';
   document.getElementById('prod-img').value = p.image_url || '';
   document.getElementById('prod-current-img').value = p.image_url || '';
   document.getElementById('prod-featured').checked = p.is_featured == 1;
   document.getElementById('prod-active').checked = p.is_active == 1;
+  
+  // Actualizar vista previa nueva
+  const newPreview = document.getElementById('product-image-preview');
+  const placeholder = document.getElementById('preview-placeholder');
+  if (p.image_url) {
+    newPreview.src = p.image_url;
+    newPreview.style.display = 'block';
+    if (placeholder) placeholder.style.display = 'none';
+  } else {
+    newPreview.style.display = 'none';
+    if (placeholder) placeholder.style.display = 'block';
+  }
+  
+  // Mantener compatibilidad con preview antiguo
   const preview = document.getElementById('preview');
   if (p.image_url) { preview.src = p.image_url; preview.style.display='block'; } else { preview.style.display='none'; }
+  
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -304,5 +363,52 @@ document.addEventListener('DOMContentLoaded', function() {
       hintEl.textContent = 'ℹ️ Ruta local - se verificará al guardar.';
     }
   });
+});
+
+// ========== VISTA PREVIA DE IMAGEN ==========
+document.addEventListener('DOMContentLoaded', function () {
+  const urlInput = document.getElementById('prod-img');
+  const preview = document.getElementById('product-image-preview');
+  const placeholder = document.getElementById('preview-placeholder');
+  
+  if (!urlInput || !preview || !placeholder) return;
+
+  function updatePreview() {
+    const url = urlInput.value.trim();
+    
+    if (!url) {
+      // Sin URL: mostrar placeholder
+      preview.style.display = 'none';
+      placeholder.style.display = 'block';
+      preview.removeAttribute('src');
+      return;
+    }
+    
+    // Con URL: intentar cargar imagen
+    placeholder.style.display = 'none';
+    preview.style.display = 'block';
+    preview.src = url;
+  }
+
+  // Escuchar cambios en el input
+  urlInput.addEventListener('input', updatePreview);
+  urlInput.addEventListener('blur', updatePreview);
+
+  // Ocultar imagen si falla la carga
+  preview.addEventListener('error', function () {
+    preview.style.display = 'none';
+    placeholder.innerHTML = '<i class="fas fa-exclamation-triangle text-warning" style="font-size: 2rem;"></i><p class="mb-0 mt-2 small text-warning">No se pudo cargar la imagen desde esta URL</p>';
+    placeholder.style.display = 'block';
+  });
+  
+  // Mostrar placeholder de éxito cuando la imagen carga
+  preview.addEventListener('load', function () {
+    if (preview.src && preview.style.display !== 'none') {
+      placeholder.style.display = 'none';
+    }
+  });
+  
+  // Inicializar al cargar la página
+  updatePreview();
 });
 </script>

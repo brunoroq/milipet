@@ -1,10 +1,39 @@
 <?php ?>
-<?php ?>
-<section class="hero-banner">
-	<div class="hero-content">
-		<h1>Todo para tu mejor amigo</h1>
-		<p>Alimentos, accesorios y amor por las mascotas. Envíos en Maipú y retiro en tienda.</p>
-		<a href="<?= url(['r' => 'catalog']) ?>" class="btn-large">Explorar catálogo</a>
+
+<!-- Home Hero -->
+<section class="hero-home main-section py-5">
+	<div class="container">
+		<div class="row align-items-center g-4">
+			<!-- Left: Text -->
+			<div class="col-md-6">
+				<p class="section-subtitle text-success mb-2">
+					<i class="fas fa-paw me-2"></i>Bienvenido a MiliPet
+				</p>
+				<h1 class="section-title display-5 fw-bold mb-3">
+					<?= cms_text('home.hero_title', 'Todo para tu mejor amigo') ?>
+				</h1>
+				<div class="hero-text mb-4">
+					<p class="text-muted mb-2">
+						<?= cms_text('home.hero_subtitle', 'Alimentos, accesorios y amor por las mascotas. Atención cercana, envíos en Maipú y retiro en tienda.') ?>
+					</p>
+				</div>
+				<div class="d-flex flex-wrap gap-2">
+					<a href="<?= url(['r' => 'catalog']) ?>" class="btn btn-success">
+						<i class="fas fa-shopping-bag me-2"></i>Explorar catálogo
+					</a>
+					<a href="<?= url(['r' => 'adoptions']) ?>" class="btn btn-outline-success">
+						<i class="fas fa-heart me-2"></i>Ver adopciones
+					</a>
+				</div>
+			</div>
+
+			<!-- Right: Image -->
+			<div class="col-md-6 text-center">
+				<img src="<?= cms_image('home.hero_image', 'https://cdn.p-nest.co.jp/c/wanchan.jp/pro/crop/1200x800/center/4/1d54dabdabaf7a2257b7d7dee2ddcadb.jpg') ?>" 
+				     alt="Mascota feliz" 
+				     class="hero-home-image">
+			</div>
+		</div>
 	</div>
 </section>
 

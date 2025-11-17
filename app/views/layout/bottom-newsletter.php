@@ -1,42 +1,40 @@
 <?php
 // Newsletter section for home page
 ?>
-<section class="bottom-section bottom-newsletter">
+<section class="bottom-section bottom-newsletter py-5">
   <div class="container">
     <div class="row align-items-center g-4">
       <div class="col-lg-5 text-center">
         <img src="https://ascii.jp/img/2020/02/26/2298618/o/83cd631e88b86d9d.png" 
              alt="Gato usando computador" 
-             class="newsletter-dog img-fluid rounded-3 shadow-lg">
+             class="newsletter-dog img-fluid rounded-4 shadow-lg">
       </div>
       <div class="col-lg-7">
         <div class="newsletter-content">
-          <div class="icon-circle mb-3">
-            <i class="fas fa-envelope"></i>
+          <div class="icon-circle bg-success-subtle text-success mb-3 mx-auto mx-lg-0">
+            <i class="fas fa-envelope fs-4"></i>
           </div>
-          <h2 class="section-title mb-3">¿Quieres recibir ofertas para tu mejor amigo?</h2>
+          <h2 class="section-title fw-bold mb-3">¿Quieres recibir ofertas para tu mejor amigo?</h2>
           <p class="lead mb-4">Suscríbete a nuestro newsletter y recibe promociones exclusivas, consejos de cuidado y novedades de productos para tu mascota.</p>
           
           <form class="newsletter-form" action="<?= url(['r' => 'newsletter/subscribe']) ?>" method="post" onsubmit="return handleNewsletterSubmit(event)">
             <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-            <div class="input-group input-group-lg shadow-sm">
-              <span class="input-group-text bg-white border-end-0">
+            <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden">
+              <span class="input-group-text bg-white border-0 d-flex align-items-center justify-content-center ps-3">
                 <i class="fas fa-envelope text-success"></i>
               </span>
               <input type="email" 
                      name="email" 
-                     class="form-control border-start-0 ps-0" 
+                     class="form-control border-0 ps-2" 
                      placeholder="tu@email.com" 
                      required 
                      pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
-              <button class="btn btn-success btn-lg px-4" type="submit">
-                <i class="fas fa-paper-plane me-2"></i>
-                Suscribirme
+              <button class="btn btn-success btn-lg px-4 border-0" type="submit">
+                <i class="fas fa-paper-plane me-2"></i>Suscribirme
               </button>
             </div>
             <small class="text-muted d-block mt-2">
-              <i class="fas fa-lock me-1"></i>
-              No compartimos tu información. Puedes cancelar en cualquier momento.
+              <i class="fas fa-lock me-1"></i>No compartimos tu información. Puedes cancelar en cualquier momento.
             </small>
           </form>
 

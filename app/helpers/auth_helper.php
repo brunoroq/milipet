@@ -42,17 +42,21 @@ function logout() {
 function require_auth() {
     if (!is_authenticated()) {
         if (function_exists('flash')) { flash('error','Debes iniciar sesión.'); }
-        header('Location: ' . (function_exists('url') ? url(['r'=>'auth/admin_login']) : '?r=auth/admin_login'));
+        header('Location: ' . (function_exists('url') ? url(['r'=>'auth/login']) : '?r=auth/login'));
         exit;
     }
 }
 
+/**
+ * Requiere que el usuario sea SOLO admin (rol estricto)
+ * Para permitir admin Y editor, usa requireRole(['admin','editor']) en su lugar
+ */
 function require_admin() {
     $uid = $_SESSION['user_id'] ?? ($_SESSION['uid'] ?? null);
     $role = $_SESSION['role'] ?? null;
     if (!$uid || $role !== 'admin') {
         if (function_exists('flash')) { flash('error','Debes iniciar sesión.'); }
-        header('Location: ' . (function_exists('url') ? url(['r'=>'auth/admin_login']) : '?r=auth/admin_login'));
+        header('Location: ' . (function_exists('url') ? url(['r'=>'auth/login']) : '?r=auth/login'));
         exit;
     }
 }
