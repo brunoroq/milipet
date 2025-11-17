@@ -23,230 +23,56 @@ if (!function_exists('mp_render_icon')) {
 ?>
 </main>
 
-<footer class="footer">
-  <div class="footer-container">
-    <div class="footer-column footer-info">
-      <h3><?= htmlspecialchars(STORE_NAME) ?></h3>
-      <p class="footer-address">
-        <?= htmlspecialchars(STORE_LOCATION_NOTE) ?><br>
-        <?= htmlspecialchars(STORE_ADDRESS_TEXT) ?>
-      </p>
-      <div class="footer-hours">
-        <strong>Horario de atención</strong>
-        <ul>
-          <li><?= htmlspecialchars(STORE_HOURS_WEEKDAYS) ?></li>
-          <li><?= htmlspecialchars(STORE_HOURS_SATURDAY) ?></li>
-        </ul>
+<?php 
+// Include bottom section (newsletter or map depending on page)
+require_once __DIR__ . '/section-bottom.php'; 
+?>
+
+<footer class="footer-modern">
+  <div class="container">
+    <div class="row align-items-center g-3 py-4">
+      <!-- Copyright - Left -->
+      <div class="col-lg-4 col-md-12 text-center text-lg-start">
+        <p class="footer-copyright mb-0">
+          <strong>© <?= date('Y') ?> MiliPet</strong>
+          <span class="footer-separator d-none d-md-inline">·</span>
+          <span class="d-block d-md-inline">Petshop en Maipú</span>
+        </p>
+      </div>
+      
+      <!-- Quick Links - Center -->
+      <div class="col-lg-4 col-md-12 text-center">
+        <nav class="footer-nav">
+          <a href="<?= url(['r' => 'catalog']) ?>" class="footer-link">Catálogo</a>
+          <a href="<?= url(['r' => 'adoptions']) ?>" class="footer-link">Adopciones</a>
+          <a href="<?= url(['r' => 'about']) ?>" class="footer-link">Quiénes somos</a>
+          <a href="<?= url(['r' => 'policies']) ?>" class="footer-link">Políticas</a>
+        </nav>
+      </div>
+      
+      <!-- Social Media - Right -->
+      <div class="col-lg-4 col-md-12 text-center text-lg-end">
+        <div class="footer-social">
+          <?php
+          $socialLinks = [
+            'whatsapp' => $storeConfig['store']['social']['whatsapp'] ?? 'https://wa.me/5695458036',
+            'instagram' => $storeConfig['store']['social']['instagram'] ?? 'https://www.instagram.com/mili_petshop/'
+          ];
+          ?>
+          <?php foreach ($socialLinks as $platform => $url): ?>
+            <a href="<?= htmlspecialchars($url) ?>" 
+               target="_blank" 
+               rel="noopener"
+               class="footer-social-btn footer-social-<?= $platform ?>"
+               aria-label="<?= ucfirst($platform) ?>">
+              <i class="fab fa-<?= $platform ?>"></i>
+            </a>
+          <?php endforeach; ?>
+        </div>
       </div>
     </div>
-
-    <div class="footer-column footer-contact">
-      <h3>Síguenos y Contáctanos</h3>
-      <ul>
-        <li><a href="#">Instagram</a></li>
-        <li><a href="#">WhatsApp</a></li>
-        <li><a href="mailto:contacto@milipet.cl">contacto@milipet.cl</a></li>
-      </ul>
-    </div>
-
-    <div class="footer-column footer-links">
-      <h3>Enlaces</h3>
-      <ul>
-        <li><a href="?r=catalog">Catálogo</a></li>
-        <li><a href="?r=about">Quiénes Somos</a></li>
-        <li><a href="?r=adoptions">Adopciones</a></li>
-        <li><a href="?r=policies">Políticas</a></li>
-      </ul>
-    </div>
   </div>
-        </div>
-        
-                <?php
-                    $coords = defined('STORE_COORDS') ? STORE_COORDS : null;
-                    $addr   = defined('STORE_ADDRESS_TEXT') ? STORE_ADDRESS_TEXT : 'Maipú, Región Metropolitana';
-                    $qParam = $coords ? $coords : $addr;
-                ?>
-                <div class="footer-map-full" aria-label="Mapa con la ubicación de la tienda">
-                    <iframe
-                        src="https://www.google.com/maps?q=<?= urlencode($qParam) ?>&z=16&hl=es&output=embed"
-                        loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade">
-                    </iframe>
-                </div>
-
-                <div class="footer-map-meta">
-                    <span class="footer-map-address"><?= htmlspecialchars($addr) ?></span>
-                    <a class="footer-map-button"
-                         href="https://www.google.com/maps/search/?api=1&query=<?= urlencode($qParam) ?>"
-                         target="_blank" rel="noopener">
-                        Abrir en Google Maps
-                    </a>
-                </div>
-
-                <div class="footer-bottom">
-                        <small>© <?php echo date('Y'); ?> MiliPet — Todos los derechos reservados</small>
-                        <div class="social-floating">
-                <?php if (isset($storeConfig['store']['social'])): ?>
-                    <?php foreach ($storeConfig['store']['social'] as $platform => $url): ?>
-                        <a href="<?php echo htmlspecialchars($url); ?>" target="_blank" rel="noopener" class="float-btn <?php echo htmlspecialchars($platform); ?>">
-                            <?php echo mp_render_icon($platform); ?>
-                        </a>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
 </footer>
-
-<style>
-.footer {
-    background: #2e7d32;
-    color: white;
-    padding: 3rem 0 1rem;
-    margin-top: 3rem;
-}
-
-.footer-content {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-    margin-bottom: 2rem;
-}
-
-.footer h3 {
-    color: white;
-    margin-bottom: 1rem;
-    font-size: 1.2rem;
-}
-
-.footer-info p {
-    margin-bottom: 0.5rem;
-    opacity: 0.9;
-}
-
-.footer-social .social-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.social-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    text-decoration: none;
-    color: white;
-    transition: transform 0.2s;
-}
-
-.social-btn:hover {
-    transform: translateY(-2px);
-}
-
-.social-btn.instagram {
-    background: #E1306C;
-}
-
-.social-btn.facebook {
-    background: #4267B2;
-}
-
-.social-btn.whatsapp {
-    background: #25D366;
-}
-
-.footer-links ul {
-    list-style: none;
-    padding: 0;
-}
-
-.footer-links a {
-    color: white;
-    text-decoration: none;
-    opacity: 0.9;
-    display: block;
-    padding: 0.3rem 0;
-}
-
-.footer-links a:hover {
-    opacity: 1;
-}
-
-.footer-bottom {
-    border-top: 1px solid rgba(255,255,255,0.1);
-    padding-top: 1rem;
-    margin-top: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.social-floating {
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
-    display: flex;
-    flex-direction: column-reverse;
-    gap: 1rem;
-    z-index: 1000;
-}
-
-.float-btn {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    text-decoration: none;
-    font-size: 1.5rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    transition: transform 0.2s;
-}
-
-.float-btn:hover {
-    transform: scale(1.1);
-}
-
-.float-btn.whatsapp {
-    background: #25D366;
-}
-
-.float-btn.instagram {
-    background: #E1306C;
-}
-
-.float-btn.facebook {
-    background: #4267B2;
-}
-
-@media (max-width: 768px) {
-    .footer {
-        padding: 2rem 0 1rem;
-    }
-    
-    .footer-content {
-        grid-template-columns: 1fr;
-        text-align: center;
-    }
-    
-    .social-buttons {
-        align-items: center;
-    }
-    
-    .footer-bottom {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-    
-    .social-floating .float-btn:not(.whatsapp) {
-        display: none;
-    }
-}
-</style>
 
 <?php if (defined('FONTAWESOME_KIT') && FONTAWESOME_KIT): ?>
 <script src="https://kit.fontawesome.com/<?php echo htmlspecialchars(FONTAWESOME_KIT, ENT_QUOTES, 'UTF-8'); ?>.js" crossorigin="anonymous"></script>
