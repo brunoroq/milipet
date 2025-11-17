@@ -39,7 +39,7 @@
 
 /* Base */
 * { box-sizing: border-box; margin: 0; font-size: 16px; scroll-behavior: smooth; }
-body { font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif; line-height: 1.5; color: var(--text); background: var(--bg); }
+body { font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif; line-height: 1.6; color: var(--text); background: var(--bg); font-size: 16px; }
 img { max-width: 100%; height: auto; }
 
 /* Typography */
@@ -56,6 +56,15 @@ h5 { font-size: 1.125rem; }
 /* Navbar (kept light, Bootstrap handles theme) */
 .navbar { position: sticky; top: 0; z-index: 1000; min-height: 80px; box-shadow: var(--shadow); padding-top: 0.75rem; padding-bottom: 0.75rem; }
 .navbar .nav-link.btn { line-height: 1.2; }
+
+/* Main menu in horizontal row (desktop only) */
+.navbar-nav.flex-row > li > a,
+.navbar-nav.flex-row > li > .btn-group > a,
+.navbar-nav.flex-row > li > .btn-group > button {
+    padding: .5rem 1rem;
+    font-weight: 500;
+    font-size: .95rem;
+}
 
 /* Header logo */
 .header-logo { height: 60px; width: auto; display: block; }
@@ -165,6 +174,46 @@ body.search-open { overflow:hidden; }
 .btn-danger { background:#ff6b6b; color:#fff; border:none; }
 .btn-danger:hover { filter: brightness(0.95); }
 
+/* Favorites button (visible, accessible, with clear states) */
+.btn-favorite, .btn-fav {
+  background: #ffffff;
+  border: 1.5px solid var(--green);
+  color: var(--green-dark);
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .15s ease;
+}
+.btn-favorite i, .btn-fav i { color: var(--green-dark); }
+.btn-favorite:hover, .btn-fav:hover { background: #fff; transform: translateY(-1px); }
+
+/* Active state: clearly highlighted (same tone as pickup badge) */
+.btn-favorite--active, .fav-active {
+  background-color: #f7d488; /* requested tone */
+  border-color: #f7d488;
+  color: #000;
+}
+.btn-favorite--active i, .fav-active i { color: #ffffff; }
+.btn-favorite--active span, .fav-active span { font-weight: 700; }
+
+/* Flash effect (brief white flash on click) */
+.fav-flash {
+  background-color: #ffffff !important;
+  border-color: #ffffff !important;
+  color: #000 !important;
+}
+
+/* Button pop animation */
+@keyframes fav-pop {
+  0% { transform: scale(1); }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+.btn-favorite--pop { animation: fav-pop 0.18s ease-out; }
+
 /* Align Bootstrap success buttons to brand and add pill variant */
 .btn-success {
   background-color: var(--green) !important;
@@ -191,6 +240,19 @@ body.search-open { overflow:hidden; }
   color: #fff !important;
   background-color: var(--green) !important;
   border-color: var(--green) !important;
+}
+
+/* Botón principal custom */
+.btn-primary-home {
+  background-color: #1c7c32;
+  border-color: #1c7c32;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.btn-primary-home:hover {
+  background-color: #145524;
+  border-color: #145524;
 }
 
 /* Links: subtle, accessible hover */
@@ -278,6 +340,10 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
   display: flex;
   justify-content: center;
   gap: 0.75rem;
+}
+
+.footer-social a {
+  font-size: .95rem;
 }
 
 .footer-social-btn {
@@ -442,7 +508,7 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
 /* === Bottom Section (Newsletter & Map) === */
 .bottom-section {
   background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
-  padding: 4rem 0;
+  padding: 3rem 0;
   margin-top: 3rem;
   position: relative;
   overflow: hidden;
@@ -468,16 +534,15 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
   border: 4px solid #fff;
 }
 .bottom-newsletter .newsletter-content {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  background: transparent;
+  padding: 0;
 }
 .bottom-newsletter .section-title {
   color: var(--green-dark);
   font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.3;
+  margin-bottom: 1rem;
 }
 .bottom-newsletter .lead {
   color: var(--text-secondary);
@@ -488,15 +553,24 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
   border-radius: 50px;
   overflow: hidden;
   background: #fff;
+  border: 2px solid #e0e0e0;
+}
+.bottom-newsletter .newsletter-form .input-group-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.5rem 0.75rem 1rem;
+  border: none;
+  background: transparent;
 }
 .bottom-newsletter .newsletter-form .form-control {
-  border: 2px solid var(--border);
-  padding: 0.75rem 1rem;
+  border: none;
+  padding: 0.75rem 0.5rem;
   font-size: 1rem;
 }
 .bottom-newsletter .newsletter-form .form-control:focus {
-  border-color: var(--green);
-  box-shadow: 0 0 0 0.2rem rgba(61, 135, 63, 0.15);
+  box-shadow: none;
+  outline: none;
 }
 .bottom-newsletter .newsletter-form .btn {
   border-radius: 0 50px 50px 0;
@@ -574,12 +648,11 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
   .bottom-section {
     padding: 3rem 0;
   }
-  .bottom-newsletter .newsletter-content,
-  .bottom-map .map-info {
-    padding: 1.5rem;
+  .bottom-newsletter .newsletter-content {
+    padding: 0;
+    margin-top: 2rem;
   }
-  .bottom-newsletter .section-title,
-  .bottom-map .section-title {
+  .bottom-newsletter .section-title {
     font-size: 1.5rem;
   }
   .bottom-map .map-wrapper {
@@ -663,6 +736,27 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Ensure product actions bar is always visible (desktop too) */
+.product-actions { opacity: 1 !important; }
+
+/* Override sizing for the favorites button inside product actions to show text clearly */
+.product-actions .btn-favorite {
+  width: auto;
+  height: auto;
+  padding: 0.35rem 0.75rem;
+}
+
+/* Header favorites heart pulse animation */
+@keyframes fav-pulse-header {
+  0% { transform: scale(1) rotate(0deg); }
+  40% { transform: scale(1.18) rotate(-6deg); }
+  70% { transform: scale(1.08) rotate(3deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.fav-pulse {
+  animation: fav-pulse-header 0.4s ease-out;
 }
 
 /* Price Styling */
@@ -790,9 +884,14 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
   max-width: 1100px;
   margin: 0 auto;
   padding: 3rem 1rem;
-  /* About page uses a soft gradient background as well */
+  /* Default soft gradient background */
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 60vh;
+}
+
+/* About page background: softer gray/blue to mirror Home aesthetics */
+.about-section-bg {
+  background: linear-gradient(135deg, #f6f9fc 0%, #eef2f7 100%) !important;
 }
 
 /* Text Narrow - Limita ancho para mejor legibilidad */
@@ -909,6 +1008,11 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
   background-color: #e1f5fe !important;
 }
 
+/* Fondo opcional para hero diferenciado */
+.home-section-bg.hero {
+  background: #f4f8f4;
+}
+
 /* About Page Responsive */
 @media (max-width: 768px) {
   .main-section {
@@ -942,5 +1046,44 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
 @media (max-width: 576px) {
   .gallery-image-wrapper {
     height: 200px;
+  }
+}
+
+/* 🏠 HOME HERO SECTION
+   =================================== */
+.hero-home {
+  /* Soft brand-friendly background; main-section already centers and sets padding */
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+  border-radius: 20px;
+  padding: 3rem 2rem !important;
+}
+
+.hero-home .hero-text {
+  max-width: 680px;
+}
+
+.hero-home-image {
+  width: 100%;
+  max-width: 460px;
+  border-radius: 24px;
+  object-fit: cover;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+}
+
+/* Hero lead text refinement */
+.home-hero-text p.lead {
+  font-size: 1.08rem;
+  color: #455056;
+  font-weight: 400;
+}
+
+@media (max-width: 767px) {
+  .hero-home {
+    border-radius: 16px;
+    padding: 2rem 1.5rem !important;
+  }
+  .hero-home-image {
+    max-width: 100%;
+    margin-top: 0.5rem;
   }
 }

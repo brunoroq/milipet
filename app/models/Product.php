@@ -87,6 +87,7 @@ class Product {
                 'long_desc' => 'long_desc=:long_desc',
                 'price' => 'price=:price',
                 'stock' => 'stock=:stock',
+                'low_stock_threshold' => 'low_stock_threshold=:low_stock_threshold',
                 'category_id' => 'category_id=:category_id',
                 'image_url' => 'image_url=:image_url',
                 'is_featured' => 'is_featured=:is_featured',
@@ -94,7 +95,7 @@ class Product {
             ];
             $sql = 'UPDATE products SET ' . implode(', ', $sets) . ' WHERE id=:id';
         } else {
-            $cols = ['name','short_desc','long_desc','price','stock','category_id','image_url','is_featured','is_active'];
+            $cols = ['name','short_desc','long_desc','price','stock','low_stock_threshold','category_id','image_url','is_featured','is_active'];
             $placeholders = array_map(fn($c) => ':' . $c, $cols);
             $sql = 'INSERT INTO products (' . implode(', ', $cols) . ') VALUES (' . implode(', ', $placeholders) . ')';
         }
@@ -109,6 +110,7 @@ class Product {
             ':long_desc' => $data['long_desc'] ?? '',
             ':price' => $data['price'],
             ':stock' => $data['stock'],
+            ':low_stock_threshold' => $data['low_stock_threshold'] ?? 5,
             ':category_id' => $data['category_id'] ?? null,
             ':image_url' => $data['image_url'] ?? '',
             ':is_featured' => isset($data['is_featured']) ? (int)$data['is_featured'] : 0,

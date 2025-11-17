@@ -1,12 +1,12 @@
 <?php ?>
 <div class="adoptions-container">
     <header class="adoptions-header">
-        <h1>Jornadas de Adopción</h1>
-        <p class="subtitle">Encuentra a tu compañero ideal y dale una segunda oportunidad</p>
+        <h1><?= cms_text('adoptions.hero_title', 'Jornadas de Adopción') ?></h1>
+        <p class="subtitle"><?= cms_text('adoptions.hero_subtitle', 'Encuentra a tu compañero ideal y dale una segunda oportunidad') ?></p>
     </header>
 
     <section class="adoption-section upcoming-events">
-        <h2>Próximas Jornadas</h2>
+        <h2><?= cms_text('adoptions.next_events_title', 'Próximas Jornadas') ?></h2>
         <div class="events-grid">
             <article class="event-card">
                 <div class="event-date">
@@ -37,7 +37,7 @@
     </section>
 
     <section class="adoption-section foundations">
-        <h2>Fundaciones Asociadas</h2>
+        <h2><?= cms_text('adoptions.associated_foundations_title', 'Fundaciones Asociadas') ?></h2>
         <div class="foundations-grid">
             <article class="foundation-card">
                 <img src="<?= asset('assets/img/foundation1.jpg') ?>" alt="Fundación Patitas Felices">

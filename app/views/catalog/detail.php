@@ -1,254 +1,120 @@
 <?php ?>
-<article class="detail">
-    <img src="<?= image_src($product['image_url'] ?? null) ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
-    <div>
-        <h1><?php echo htmlspecialchars($product['name']); ?></h1>
-        <p class="muted"><?php echo htmlspecialchars($product['category_name'] ?? ''); ?></p>
-        
-        <?php if (!empty($product['short_desc'])): ?>
-            <p class="product-short-desc"><?php echo htmlspecialchars($product['short_desc']); ?></p>
-        <?php endif; ?>
-        
-        <?php if (!empty($product['long_desc'])): ?>
-            <div class="product-long-desc">
-                <?php echo nl2br(htmlspecialchars($product['long_desc'])); ?>
+<section class="main-section home-section-bg py-5">
+    <div class="container">
+        <div class="row g-5 align-items-start justify-content-center">
+            <!-- Left Column: Product Image -->
+            <div class="col-md-5 col-lg-4">
+                <div class="product-detail-image card border-0 shadow-sm rounded-4 p-3">
+                    <img src="<?= image_src($product['image_url'] ?? null) ?>" 
+                         alt="<?= htmlspecialchars($product['name']) ?>" 
+                         class="img-fluid rounded-4">
+                </div>
             </div>
-        <?php endif; ?>
-        
-        <strong>$<?php echo number_format($product['price'] ?? 0, 0, ',', '.'); ?></strong>
-        
-        <?php if ($product['stock'] <= 0): ?>
-            <p class="stock-status out">Sin stock</p>
-            <div class="notify-form">
-                <p>Este producto está temporalmente agotado.</p>
-                <!-- Aquí se podría agregar un formulario de notificación cuando haya stock -->
-            </div>
-        <?php else: ?>
-            <?php
-            $STORE_ADDRESS = defined('STORE_ADDRESS') ? STORE_ADDRESS : 'Maipú, Chile';
-            $PICKUP_MSG    = defined('STORE_PICKUP_MESSAGE') ? STORE_PICKUP_MESSAGE : 'Retiro en tienda Gratis • Disponible hoy';
-            ?>
-            <span class="badge-stock">Stock disponible: <?php echo (int)$product['stock']; ?> unidades</span>
-            <p class="muted"><?php echo htmlspecialchars($PICKUP_MSG); ?> — <?php echo htmlspecialchars($STORE_ADDRESS); ?></p>
-            <div class="product-actions">
-                <div class="delivery-options">
-                    <h3>Opciones de entrega</h3>
-                    <div class="option-wrapper">
-                        <label class="delivery-option">
-                            <input type="radio" name="delivery" value="store" checked>
-                            <div class="option-content">
-                                <i class="fas fa-store"></i>
-                                <div class="option-text">
-                                    <strong>Retiro en tienda</strong>
-                                    <span><?php echo htmlspecialchars($PICKUP_MSG); ?></span>
-                                </div>
-                            </div>
-                        </label>
-                        <div class="store-info">
-                            <p><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($STORE_ADDRESS); ?></p>
-                            <p><i class="fas fa-clock"></i> Horario:</p>
-                            <?php if (defined('STORE_HOURS') && is_array(STORE_HOURS)): ?>
-                                <?php foreach (STORE_HOURS as $day => $hours): ?>
-                                    <p class="store-hours"><?php echo htmlspecialchars($day); ?>: <?php echo htmlspecialchars($hours); ?></p>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </div>
-                    </div>
+
+            <!-- Right Column: Product Info -->
+            <div class="col-md-7 col-lg-6">
+                <!-- Breadcrumb -->
+                <p class="text-muted small mb-2">
+                    <a href="<?= url(['r' => 'catalog']) ?>" class="text-decoration-none text-success">Catálogo</a>
+                    / <?= htmlspecialchars($product['name']) ?>
+                </p>
+
+                <!-- Product Title -->
+                <h1 class="display-5 fw-bold mb-2"><?= htmlspecialchars($product['name']) ?></h1>
+
+                <!-- Category -->
+                <p class="text-muted mb-3"><?= htmlspecialchars($product['category_name'] ?? '') ?></p>
+
+                <!-- Price -->
+                <p class="product-price h3 fw-bold text-dark mb-2">$<?= number_format($product['price'] ?? 0, 0, ',', '.') ?></p>
+
+                <?php
+                $STORE_ADDRESS = defined('STORE_ADDRESS') ? STORE_ADDRESS : 'Maipú, Chile';
+                $PICKUP_MSG    = defined('STORE_PICKUP_MESSAGE') ? STORE_PICKUP_MESSAGE : 'Retiro en tienda Gratis • Disponible hoy';
+                $inStock = (int)($product['stock'] ?? 0) > 0;
+                ?>
+
+                <!-- Stock & Pickup Badges -->
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <?php if ($inStock): ?>
+                        <span class="badge badge-stock">
+                            <i class="fas fa-check-circle me-1"></i><?= (int)$product['stock'] ?> unid.
+                        </span>
+                        <span class="badge badge-pickup">
+                            <i class="fas fa-store me-1"></i>Retiro hoy
+                        </span>
+                    <?php else: ?>
+                        <span class="badge badge-out-stock">
+                            <i class="fas fa-times-circle me-1"></i>Sin stock
+                        </span>
+                    <?php endif; ?>
                 </div>
 
-                <div class="purchase-buttons">
-                    <button class="btn purchase-btn" onclick="addToCart(<?php echo (int)$product['id']; ?>)">
-                        <i class="fas fa-shopping-cart"></i>
-                        Añadir al carrito
+                <!-- Action Buttons: Cart + Favorites -->
+                <div class="d-flex flex-wrap gap-3 align-items-center mb-4">
+                    <button class="btn btn-success rounded-pill px-4 <?= $inStock ? '' : 'disabled' ?>"
+                            onclick="addToCart(<?= (int)$product['id'] ?>)"
+                            <?= $inStock ? '' : 'disabled' ?>>
+                        <i class="fas fa-cart-plus me-2"></i><?= $inStock ? 'Añadir al carrito' : 'Sin stock' ?>
                     </button>
-                    <button class="btn-outline purchase-btn" data-fav-id="<?= (int)$product['id'] ?>" onclick="toggleFav(<?= (int)$product['id'] ?>)" aria-pressed="false">
+                    <button class="btn btn-favorite"
+                            data-fav-id="<?= (int)$product['id'] ?>"
+                            onclick="toggleFav(<?= (int)$product['id'] ?>)"
+                            aria-pressed="false">
                         <i class="fa-regular fa-heart"></i>
-                        Favorito
+                        <span>Agregar a favoritos</span>
                     </button>
-                    
-                    <a class="btn-outline whatsapp-btn" target="_blank" 
-                       href="https://wa.me/<?php echo trim(SOCIAL_MEDIA['whatsapp']['display'], '+'); ?>?text=Hola%20MiliPet,%20me%20interesa:%20<?php echo urlencode($product['name']); ?>%20para%20retiro%20en%20tienda">
-                        <i class="fab fa-whatsapp"></i>
-                        Comprar por WhatsApp
-                    </a>
                 </div>
+
+                <!-- Back to Catalog -->
+                <a href="<?= url(['r' => 'catalog']) ?>" class="btn btn-outline-secondary rounded-pill mb-4">
+                    ← Volver al catálogo
+                </a>
+
+                <!-- Description -->
+                <?php if (!empty($product['long_desc'])): ?>
+                <div class="mt-4">
+                    <h2 class="h5 fw-semibold mb-2">Descripción</h2>
+                    <p class="text-muted mb-0"><?= nl2br(htmlspecialchars($product['long_desc'])) ?></p>
+                </div>
+                <?php endif; ?>
+
+                <!-- Pickup Info & Delivery Options (only when in stock) -->
+                <?php if ($inStock): ?>
+                <div class="mt-4 p-4 bg-light rounded-4">
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-store text-success me-2"></i><?= htmlspecialchars($PICKUP_MSG) ?> — <?= htmlspecialchars($STORE_ADDRESS) ?>
+                    </p>
+                    <?php if (defined('STORE_HOURS') && is_array(STORE_HOURS)): ?>
+                    <p class="text-muted small mb-1"><i class="fas fa-clock text-success me-2"></i>Horarios:</p>
+                    <ul class="list-unstyled text-muted small ps-4">
+                        <?php foreach (STORE_HOURS as $day => $hours): ?>
+                            <li><?= htmlspecialchars($day) ?>: <?= htmlspecialchars($hours) ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <?php endif; ?>
+                </div>
+                <?php else: ?>
+                <div class="alert alert-warning mt-4">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Este producto está temporalmente agotado.
+                </div>
+                <?php endif; ?>
             </div>
-        <?php endif; ?>
+        </div>
     </div>
-</article>
+</section>
 
 <style>
-.product-short-desc {
-    font-size: 1.1rem;
-    color: #555;
-    margin: 1rem 0;
-    font-weight: 500;
-}
-
-.product-long-desc {
-    color: #666;
-    line-height: 1.6;
-    margin: 1rem 0 1.5rem 0;
-}
-
-.stock-status {
-    font-weight: bold;
-    padding: 10px 15px;
-    border-radius: 4px;
-    text-align: center;
-    margin: 15px 0;
-}
-.stock-status.out {
-    background-color: #ffebee;
-    color: #c62828;
-}
-.stock-status.in {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-}
-.notify-form {
-    background-color: #f5f5f5;
-    padding: 15px;
-    border-radius: 4px;
-    margin: 15px 0;
-}
-
-.product-actions {
-    margin-top: 2rem;
-}
-
-.delivery-options {
-    margin-bottom: 2rem;
-    background: #fff;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.delivery-options h3 {
-    margin-bottom: 1rem;
-    color: #2e7d32;
-}
-
-.option-wrapper {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.delivery-option {
-    display: block;
-    cursor: pointer;
-    padding: 1rem;
-    transition: background-color 0.2s;
-}
-
-.delivery-option:hover {
-    background-color: #f5f5f5;
-}
-
-.delivery-option input[type="radio"] {
-    display: none;
-}
-
-.delivery-option input[type="radio"]:checked + .option-content {
-    color: #2e7d32;
-}
-
-.option-content {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.option-content i {
-    font-size: 1.5rem;
-    color: #2e7d32;
-}
-
-.option-text {
-    display: flex;
-    flex-direction: column;
-}
-
-.option-text strong {
-    font-size: 1.1rem;
-}
-
-.option-text span {
-    font-size: 0.9rem;
-    color: #666;
-}
-
-.store-info {
-    padding: 1rem;
-    background: #f8f9fa;
-    border-top: 1px solid #e0e0e0;
-}
-
-.store-info p {
-    margin: 0.5rem 0;
-    color: #333;
-}
-
-.store-info i {
-    color: #2e7d32;
-    width: 20px;
-    text-align: center;
-    margin-right: 0.5rem;
-}
-
-.store-hours {
-    padding-left: 25px;
-    font-size: 0.9rem;
-    color: #666;
-}
-
-.purchase-buttons {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-}
-
-.purchase-btn,
-.whatsapp-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 1rem;
+/* Product Detail Image */
+.product-detail-image img {
+    object-fit: contain;
     width: 100%;
-    font-size: 1.1rem;
-}
-
-.whatsapp-btn {
-    background-color: #25D366;
-    color: white;
-    border: none;
-}
-
-.whatsapp-btn:hover {
-    background-color: #128C7E;
-}
-
-@media (min-width: 768px) {
-    .purchase-buttons {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    background: #fff;
 }
 
 @media (max-width: 767px) {
-    .delivery-options {
-        padding: 1rem;
-    }
-    
-    .option-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .option-text {
-        align-items: center;
+    .product-detail-image {
+        margin-bottom: 1.5rem;
     }
 }
 </style>

@@ -1,17 +1,18 @@
 <?php ?>
 
 <!-- 🎨 Hero Section -->
-<section class="main-section py-5">
+<section class="main-section about-section-bg py-5">
     <div class="container">
         <!-- Header atractivo -->
         <div class="text-center mb-5">
             <p class="text-success text-uppercase fw-semibold mb-2 letter-spacing-wide">
                 <i class="fas fa-paw me-2"></i>Sobre MiliPet
             </p>
-            <h1 class="display-4 fw-bold text-dark mb-3">Quiénes Somos</h1>
+            <h1 class="display-4 fw-bold text-dark mb-3">
+                <?= cms_text('about.hero_title', 'Quiénes Somos') ?>
+            </h1>
             <p class="lead text-muted text-narrow mx-auto">
-                Tu tienda de confianza para el cuidado y bienestar de tus mascotas en Maipú. 
-                Desde 2020, ofrecemos productos de calidad y servicio personalizado para que tus compañeros peludos vivan mejor.
+                <?= cms_text('about.hero_subtitle', 'Tu tienda de confianza para el cuidado y bienestar de tus mascotas en Maipú.') ?>
             </p>
         </div>
 
@@ -24,14 +25,11 @@
                     </div>
                     <div>
                         <h2 class="h3 fw-bold text-dark mb-3">
-                            <i class="fas fa-history me-2 text-success"></i>Nuestra Historia
+                            <i class="fas fa-history me-2 text-success"></i>
+                            <?= cms_text('about.history_title', 'Nuestra Historia') ?>
                         </h2>
-                        <p class="text-dark mb-3">
-                            Desde 2020, MiliPet nace con la misión de ofrecer productos de calidad para el cuidado de mascotas en la comuna de Maipú. 
-                            Lo que comenzó como un pequeño emprendimiento familiar, se ha convertido en un referente local para dueños de mascotas que buscan lo mejor para sus compañeros peludos.
-                        </p>
                         <p class="text-dark mb-0">
-                            Nuestra experiencia en el cuidado animal y el compromiso con el bienestar de las mascotas nos ha permitido crear un espacio donde encontrarás todo lo necesario para el cuidado de tus animales, desde alimentos premium hasta accesorios especializados.
+                            <?= cms_text('about.history_text', 'Desde 2020, MiliPet nace con la misión de ofrecer productos de calidad para el cuidado de mascotas en la comuna de Maipú.') ?>
                         </p>
                     </div>
                 </div>
@@ -49,17 +47,13 @@
                                 <i class="fas fa-bullseye fs-4"></i>
                             </div>
                         </div>
-                        <h2 class="h4 fw-bold text-dark text-center mb-3">Nuestra Misión</h2>
-                        <p class="text-dark mb-3">En MiliPet nos dedicamos a mejorar la vida de las mascotas y sus familias, ofreciendo:</p>
-                        <ul class="text-dark list-unstyled">
-                            <li class="mb-2">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                Productos de alta calidad seleccionados cuidadosamente
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                Asesoría personalizada para el cuidado de tu mascota
-                            </li>
+                        <h2 class="h4 fw-bold text-dark text-center mb-3">
+                            <?= cms_text('about.mission_title', 'Nuestra Misión') ?>
+                        </h2>
+                        <p class="text-dark mb-0">
+                            <?= cms_text('about.mission_text', 'En MiliPet nos dedicamos a mejorar la vida de las mascotas y sus familias, ofreciendo productos de alta calidad seleccionados cuidadosamente.') ?>
+                        </p>
+                        <ul class="mt-3 mb-0 ps-3">
                             <li class="mb-2">
                                 <i class="fas fa-check-circle text-success me-2"></i>
                                 Precios justos y competitivos
@@ -82,10 +76,11 @@
                                 <i class="fas fa-eye fs-4"></i>
                             </div>
                         </div>
-                        <h2 class="h4 fw-bold text-dark text-center mb-3">Nuestra Visión</h2>
+                        <h2 class="h4 fw-bold text-dark text-center mb-3">
+                            <?= cms_text('about.vision_title', 'Nuestra Visión') ?>
+                        </h2>
                         <p class="text-dark mb-0">
-                            Aspiramos a ser la tienda de mascotas preferida en Maipú, reconocida por nuestra calidad, servicio y compromiso con el bienestar animal. 
-                            Queremos construir una comunidad donde cada mascota sea valorada y cuidada con los mejores productos y la atención que merece.
+                            <?= cms_text('about.vision_text', 'Aspiramos a ser la tienda de mascotas preferida en Maipú, reconocida por nuestra calidad, servicio y compromiso con el bienestar animal.') ?>
                         </p>
                     </div>
                 </div>
@@ -157,9 +152,9 @@
                 <div class="col-md-4">
                     <div class="card shadow-sm border-0 rounded-4 overflow-hidden hover-zoom">
                         <div class="gallery-image-wrapper">
-                            <img src="<?= asset('assets/img/store-front.jpg') ?>" 
-                                 alt="Fachada de MiliPet" 
-                                 class="card-img-top gallery-image">
+                       <img src="https://pumay.cl/wp-content/uploads/2024/02/Local_Milipet.jpg" 
+                           alt="Fachada de MiliPet" 
+                           class="card-img-top gallery-image">
                             <div class="gallery-overlay">
                                 <p class="text-white fw-semibold mb-0">
                                     <i class="fas fa-map-marker-alt me-2"></i>Nuestra tienda en Maipú

@@ -139,13 +139,14 @@
 					
 					<!-- Favorite & Cart Icons -->
 					<div class="product-actions position-absolute top-0 start-0 w-100 p-2 d-flex justify-content-between">
-						<button type="button" 
-						        class="btn btn-sm btn-light rounded-circle shadow-sm fav-btn" 
-						        data-fav-id="<?= (int)$p['id'] ?>" 
-						        onclick="toggleFav(<?= (int)$p['id'] ?>)" 
-						        aria-pressed="false"
-						        title="Favorito">
+						<button type="button"
+								class="btn btn-favorite"
+								data-fav-id="<?= (int)$p['id'] ?>"
+								onclick="toggleFav(<?= (int)$p['id'] ?>)"
+								aria-pressed="false"
+								title="Agregar a favoritos">
 							<i class="fa-regular fa-heart"></i>
+							<span>Agregar a favoritos</span>
 						</button>
 						<?php if (($p['stock'] ?? 0) > 0): ?>
 						<button type="button" 

@@ -52,22 +52,26 @@ require_once __DIR__ . '/section-bottom.php';
       
       <!-- Social Media - Right -->
       <div class="col-lg-4 col-md-12 text-center text-lg-end">
-        <div class="footer-social">
+        <p class="text-white small fw-semibold mb-2">Síguenos</p>
+        <div class="footer-social mt-3 d-flex gap-3 justify-content-center justify-content-lg-end">
           <?php
-          $socialLinks = [
-            'whatsapp' => $storeConfig['store']['social']['whatsapp'] ?? 'https://wa.me/5695458036',
-            'instagram' => $storeConfig['store']['social']['instagram'] ?? 'https://www.instagram.com/mili_petshop/'
-          ];
+          $whatsappUrl = $storeConfig['store']['social']['whatsapp'] ?? 'https://wa.me/5695458036';
+          $instagramUrl = $storeConfig['store']['social']['instagram'] ?? 'https://www.instagram.com/mili_petshop/';
           ?>
-          <?php foreach ($socialLinks as $platform => $url): ?>
-            <a href="<?= htmlspecialchars($url) ?>" 
-               target="_blank" 
-               rel="noopener"
-               class="footer-social-btn footer-social-<?= $platform ?>"
-               aria-label="<?= ucfirst($platform) ?>">
-              <i class="fab fa-<?= $platform ?>"></i>
-            </a>
-          <?php endforeach; ?>
+          <a href="<?= htmlspecialchars($whatsappUrl) ?>" 
+             class="btn btn-success rounded-pill px-3" 
+             target="_blank" 
+             rel="noopener"
+             aria-label="WhatsApp">
+            <i class="fab fa-whatsapp me-2"></i> WhatsApp
+          </a>
+          <a href="<?= htmlspecialchars($instagramUrl) ?>" 
+             class="btn btn-outline-light rounded-pill px-3" 
+             target="_blank" 
+             rel="noopener"
+             aria-label="Instagram">
+            <i class="fab fa-instagram me-2"></i> Instagram
+          </a>
         </div>
       </div>
     </div>

@@ -109,14 +109,20 @@ if (!function_exists('csrf_check')) {
     }
 }
 
-// --- Guard para roles ---
+// --- Guard para roles (permite múltiples roles) ---
+// USO: requireRole(['admin','editor']) permite admin Y editor
+//      require_admin() en auth_helper.php solo permite admin (estricto)
 if (!function_exists('requireRole')) {
+    /**
+     * Verifica que el usuario tenga uno de los roles permitidos
+     * @param array $allowed Array de roles permitidos ['admin','editor','cliente']
+     */
     function requireRole(array $allowed) {
         $role = $_SESSION['role'] ?? null;
         $uid  = $_SESSION['uid'] ?? ($_SESSION['user_id'] ?? null);
         if (!$uid || !$role || !in_array($role, $allowed, true)) {
             flash('error','Debes iniciar sesión.');
-            header('Location: ' . url(['r'=>'auth/admin_login']));
+            header('Location: ' . url(['r'=>'auth/login']));
             exit;
         }
     }

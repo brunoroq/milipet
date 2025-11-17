@@ -10,7 +10,63 @@ function removeFromCart(id){id=parseInt(id);const c=getCart().filter(x=>x!==id);
 // --- Favorites helpers ---
 function getFavs(){try{return JSON.parse(localStorage.getItem(FAV_KEY))||[]}catch(e){return[]}}
 function saveFavs(f){localStorage.setItem(FAV_KEY,JSON.stringify(f))}
-function toggleFav(id){id=parseInt(id);if(!id)return;let f=getFavs();if(f.includes(id)){f=f.filter(x=>x!==id)}else{f.push(id)}saveFavs(f);syncHeaderCounts();updateFavButtons();}
+function toggleFav(id){
+  id = parseInt(id);
+  if (!id) return;
+  let f = getFavs();
+  const wasFav = f.includes(id);
+  let added = false;
+  if (wasFav) {
+    f = f.filter(x => x !== id);
+  } else {
+    f.push(id);
+    added = true;
+  }
+  saveFavs(f);
+  syncHeaderCounts();
+  // Update all buttons for this product id with flash then final state
+  try {
+    const buttons = document.querySelectorAll(`[data-fav-id="${id}"]`);
+    buttons.forEach(btn => {
+      // brief white flash
+      btn.classList.add('fav-flash');
+      setTimeout(() => {
+        btn.classList.remove('fav-flash');
+        // state classes and aria
+        btn.classList.toggle('btn-favorite--active', added); // backward compatibility
+        btn.classList.toggle('fav-active', added);
+        btn.classList.remove('active'); // legacy class cleanup
+        btn.setAttribute('aria-pressed', added ? 'true' : 'false');
+        // icon
+        const icon = btn.querySelector('i');
+        if (icon) {
+          icon.classList.remove('fa-regular','fa-solid');
+          icon.classList.add(added ? 'fa-solid' : 'fa-regular', 'fa-heart');
+        }
+        // label
+        const label = btn.querySelector('span');
+        if (label) {
+          label.textContent = added ? 'En favoritos' : 'Agregar a favoritos';
+        }
+        // pop animation
+        btn.classList.remove('btn-favorite--pop');
+        void btn.offsetWidth; // reflow to restart animation
+        btn.classList.add('btn-favorite--pop');
+        setTimeout(() => btn.classList.remove('btn-favorite--pop'), 220);
+      }, 170);
+    });
+  } catch(e) {}
+  // Header heart pulse when adding only
+  if (added) {
+    const headerFavIcon = document.getElementById('header-fav-icon') || document.querySelector('#fav-link i.fa-heart');
+    if (headerFavIcon) {
+      headerFavIcon.classList.remove('fav-pulse');
+      void headerFavIcon.offsetWidth; // restart animation
+      headerFavIcon.classList.add('fav-pulse');
+      setTimeout(() => headerFavIcon.classList.remove('fav-pulse'), 400);
+    }
+  }
+}
 function removeFromFavs(id){id=parseInt(id);let f=getFavs().filter(x=>x!==id);saveFavs(f);syncHeaderCounts();updateFavButtons();}
 
 // --- UI helpers ---
@@ -20,7 +76,28 @@ function syncHeaderCounts(){try{const cc=getCart().length;const fc=getFavs().len
   const favLink=document.getElementById('fav-link'); if(favLink){const ids=getFavs().join(','); const base=favLink.getAttribute('data-base')||favLink.href; favLink.setAttribute('data-base', base.split('?')[0]); const hrefBase=favLink.getAttribute('data-base'); favLink.href=hrefBase + (ids? ('?r=favorites&ids='+ids):'?r=favorites');}
 }catch(e){}}
 
-function updateFavButtons(){try{const favs=new Set(getFavs());document.querySelectorAll('[data-fav-id]').forEach(btn=>{const id=parseInt(btn.getAttribute('data-fav-id'));if(favs.has(id)){btn.classList.add('active');btn.setAttribute('aria-pressed','true');}else{btn.classList.remove('active');btn.setAttribute('aria-pressed','false');}})}catch(e){}}
+function updateFavButtons(){
+  try {
+    const favs = new Set(getFavs());
+    document.querySelectorAll('[data-fav-id]').forEach(btn => {
+      const id = parseInt(btn.getAttribute('data-fav-id'));
+      const isFav = favs.has(id);
+      btn.classList.toggle('btn-favorite--active', isFav);
+      btn.classList.toggle('fav-active', isFav);
+      btn.classList.remove('active'); // legacy cleanup
+      btn.setAttribute('aria-pressed', isFav ? 'true' : 'false');
+      const icon = btn.querySelector('i');
+      if (icon) {
+        icon.classList.remove('fa-regular','fa-solid');
+        icon.classList.add(isFav ? 'fa-solid' : 'fa-regular', 'fa-heart');
+      }
+      const label = btn.querySelector('span');
+      if (label) {
+        label.textContent = isFav ? 'En favoritos' : 'Agregar a favoritos';
+      }
+    });
+  } catch(e) {}
+}
 
 function toast(msg){try{if(window.bootstrap){const el=document.createElement('div');el.className='toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-3';el.role='status';el.ariaLive='polite';el.innerHTML='<div class="d-flex"><div class="toast-body">'+msg+'</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';document.body.appendChild(el);new bootstrap.Toast(el,{delay:1800}).show();setTimeout(()=>el.remove(),2200);}else{alert(msg)}}catch(e){alert(msg)}}
 
