@@ -10,16 +10,48 @@ class CatalogController {
     $category = $_GET['category'] ?? ($_GET['cid'] ?? null);
     $species  = $_GET['species'] ?? null;
     $in_stock = isset($_GET['stock']);
+    // Resolver slugs: si no es dígito, intentar mapear a ID usando slugify de modelos
+    require_once __DIR__ . '/../models/Category.php';
+    require_once __DIR__ . '/../models/Species.php';
 
-    // Normaliza: si no es dígito positivo → null
-    $category = (isset($category) && ctype_digit((string)$category) && (int)$category > 0) ? (int)$category : null;
-    $species  = (isset($species)  && ctype_digit((string)$species)  && (int)$species  > 0) ? (int)$species  : null;
+    $resolvedCategoryId = null;
+    $resolvedSpeciesId = null;
+
+    if (isset($category) && $category !== '') {
+      if (ctype_digit((string)$category) && (int)$category > 0) {
+        $resolvedCategoryId = (int)$category;
+      } else {
+        // Buscar por slug
+        try {
+          $allCats = Category::allForMenu();
+          foreach ($allCats as $c) {
+            if ($c['slug'] === strtolower($category)) { $resolvedCategoryId = (int)$c['id']; break; }
+          }
+        } catch (Throwable $e) { /* ignorar */ }
+      }
+    }
+
+    if (isset($species) && $species !== '') {
+      if (ctype_digit((string)$species) && (int)$species > 0) {
+        $resolvedSpeciesId = (int)$species;
+      } else {
+        try {
+          $allSpecies = Species::allForMenu();
+          foreach ($allSpecies as $sp) {
+            if ($sp['slug'] === strtolower($species)) { $resolvedSpeciesId = (int)$sp['id']; break; }
+          }
+        } catch (Throwable $e) { /* ignorar */ }
+      }
+    }
+
+    $category = $resolvedCategoryId;
+    $species  = $resolvedSpeciesId;
 
     // Búsqueda con filtros sanitizados
     $products   = Product::search($query, $category, $species, $in_stock);
-    $categories = Category::all();
-    $speciesList = [];
-    try { $speciesList = Species::all(); } catch (Throwable $e) { $speciesList = []; }
+  $categories = Category::all();
+  $speciesList = [];
+  try { $speciesList = Species::all(); } catch (Throwable $e) { $speciesList = []; }
 
   // Si no hay resultados y hubo búsqueda (query !== ''), cargar sugeridos
   $suggested = (empty($products) && $query !== '') ? Product::getFeatured(4) : [];

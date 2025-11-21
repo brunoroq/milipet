@@ -20,7 +20,7 @@
             </article>
         <?php endforeach; ?>
     </div>
-    <?php $waBase = 'https://wa.me/56900000000?text='; $msg = 'Hola MiliPet, me interesan:%0A'; foreach($products as $p){ $msg .= rawurlencode($p['name']).'%20$'.rawurlencode(number_format($p['price']??0,0,',','.')).'%0A'; } $msg .= '%0ATotal:%20$'.rawurlencode(number_format($total,0,',','.')); ?>
+    <?php $waBase = 'https://wa.me/+56957153992?text='; $msg = 'Hola MiliPet, estoy interesado en los siguientes productos:%0A'; foreach($products as $p){ $msg .= rawurlencode($p['name']).'%20$'.rawurlencode(number_format($p['price']??0,0,',','.')).'%0A'; } $msg .= '%0ATotal:%20$'.rawurlencode(number_format($total,0,',','.')); ?>
     <p><strong>Total estimado: $<?= number_format($total,0,',','.') ?></strong></p>
     <a class="btn btn-success mt-3" target="_blank" href="<?= $waBase . $msg ?>">Enviar lista por WhatsApp</a>
 <?php endif; ?>

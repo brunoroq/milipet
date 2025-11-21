@@ -108,6 +108,16 @@
                       <i class="fas fa-boxes text-warning me-2"></i>Revisar inventario
                     </a>
                   </li>
+                  <li class="mb-2">
+                    <a href="<?= url(['r'=>'admin/species']) ?>" class="text-decoration-none">
+                      <i class="fas fa-paw text-success me-2"></i>Gestionar especies
+                    </a>
+                  </li>
+                  <li class="mb-2">
+                    <a href="<?= url(['r'=>'admin/categories']) ?>" class="text-decoration-none">
+                      <i class="fas fa-tags text-success me-2"></i>Gestionar categorías
+                    </a>
+                  </li>
                 </ul>
               </div>
               <div class="col-md-6">
@@ -120,6 +130,16 @@
                   <li class="mb-2">
                     <a href="<?= url(['r'=>'catalog']) ?>" target="_blank" class="text-decoration-none">
                       <i class="fas fa-store text-info me-2"></i>Ver catálogo
+                    </a>
+                  </li>
+                  <li class="mb-2">
+                    <a href="<?= url(['r'=>'admin/species']) ?>" class="text-decoration-none">
+                      <i class="fas fa-sitemap text-primary me-2"></i>Taxonomía: Especies
+                    </a>
+                  </li>
+                  <li class="mb-2">
+                    <a href="<?= url(['r'=>'admin/categories']) ?>" class="text-decoration-none">
+                      <i class="fas fa-layer-group text-primary me-2"></i>Taxonomía: Categorías
                     </a>
                   </li>
                 </ul>

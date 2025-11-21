@@ -215,6 +215,15 @@
       <a href="<?= url(['r' => 'admin/products']) ?>" class="admin-nav-btn <?= ($_GET['r'] ?? '') === 'admin/products' ? 'active' : '' ?>">
         <i class="fas fa-box me-1"></i>Productos
       </a>
+      <div class="dropdown">
+        <a href="#" class="admin-nav-btn dropdown-toggle <?= in_array(($_GET['r'] ?? ''), ['admin/species','admin/categories']) ? 'active' : '' ?>" id="taxonomyMenu" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="fas fa-cog me-1"></i>Taxonomía
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="taxonomyMenu">
+          <li><a class="dropdown-item" href="<?= url(['r' => 'admin/species']) ?>"><i class="fas fa-paw me-2"></i>Especies</a></li>
+          <li><a class="dropdown-item" href="<?= url(['r' => 'admin/categories']) ?>"><i class="fas fa-tags me-2"></i>Categorías</a></li>
+        </ul>
+      </div>
       <a href="<?= url(['r' => 'admin/content']) ?>" class="admin-nav-btn <?= strpos(($_GET['r'] ?? ''), 'admin/content') === 0 ? 'active' : '' ?>">
         <i class="fas fa-file-alt me-1"></i>Contenido
       </a>

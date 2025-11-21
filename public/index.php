@@ -61,6 +61,12 @@ function render($view, $vars = []) {
     // Nota: no redirigimos automáticamente admins autenticados desde el frontend
     // Esto permite visualizar la web pública incluso con sesión admin activa.
 
+    // Inyectar datos de menú del header antes de renderizar layout público
+    require_once __DIR__ . '/../app/helpers/header_menu.php';
+    $menuData = mp_get_header_menu();
+    // Variables accesibles en header.php
+    $headerSpecies = $menuData['species'];
+    $headerCategories = $menuData['categories'];
     extract($vars);
     $baseUrl = defined('BASE_URL') ? BASE_URL : '';
     include __DIR__ . '/../app/views/layout/header.php';
@@ -197,6 +203,35 @@ switch ($routeParts[0]) {
         if (function_exists('requireRole')) { requireRole(['admin','editor']); }
         (new AdminController())->deleteProduct();
         break;
+    
+    // Gestión de especies
+    case 'admin/species':
+        if (function_exists('requireRole')) { requireRole(['admin','editor']); }
+        (new AdminController())->species();
+        break;
+    case 'admin/species/save':
+        if (function_exists('requireRole')) { requireRole(['admin','editor']); }
+        (new AdminController())->saveSpecies();
+        break;
+    case 'admin/species/delete':
+        if (function_exists('requireRole')) { requireRole(['admin','editor']); }
+        (new AdminController())->deleteSpecies();
+        break;
+    
+    // Gestión de categorías
+    case 'admin/categories':
+        if (function_exists('requireRole')) { requireRole(['admin','editor']); }
+        (new AdminController())->categories();
+        break;
+    case 'admin/categories/save':
+        if (function_exists('requireRole')) { requireRole(['admin','editor']); }
+        (new AdminController())->saveCategory();
+        break;
+    case 'admin/categories/delete':
+        if (function_exists('requireRole')) { requireRole(['admin','editor']); }
+        (new AdminController())->deleteCategory();
+        break;
+    
     default:
         http_response_code(404);
         render('static/404');
