@@ -1,13 +1,34 @@
 <?php
-// Carga de configuración y datos para el menú
+// =============================
+// Header bootstrap: config + datos para menú Catálogo
+// Si $headerSpecies / $headerCategories ya vienen desde render() los usamos.
+// Fallback: intentar cargar directamente (evita romper si alguien incluye header.php aislado)
+// =============================
 require_once __DIR__ . '/../../../config/config.php';
 $storeConfig = (isset($config) && is_array($config)) ? $config : [];
 $wa = $storeConfig['store']['social']['whatsapp'] ?? 'https://wa.me/5695458036';
 $ig = $storeConfig['store']['social']['instagram'] ?? 'https://www.instagram.com/mili_petshop/';
-// Categorías para el dropdown de Catálogo
-require_once __DIR__ . '/../../models/Category.php';
-$navCategories = [];
-try { $navCategories = Category::all(); } catch (Throwable $e) { $navCategories = []; }
+
+// Normalizar variables provenientes del helper centralizado
+$speciesList = isset($headerSpecies) ? $headerSpecies : [];
+$categoryList = isset($headerCategories) ? $headerCategories : [];
+
+if (empty($speciesList) || empty($categoryList)) {
+	// Fallback mínimo (solo si no llegaron por render)
+	require_once __DIR__ . '/../../models/Species.php';
+	require_once __DIR__ . '/../../models/Category.php';
+	try {
+		if (empty($speciesList)) { $speciesList = Species::allForMenu(); }
+		if (empty($categoryList)) { $categoryList = Category::allForMenu(); }
+	} catch (Throwable $e) {
+		$speciesList = [];
+		$categoryList = [];
+	}
+}
+
+// Obtener categorías agrupadas por especie (para mega-menú estilo SuperZoo)
+require_once __DIR__ . '/../../helpers/header_menu.php';
+$categoriesBySpecies = mp_get_categories_by_species();
 ?>
 <!doctype html>
 <html lang="es">
@@ -39,16 +60,74 @@ try { $navCategories = Category::all(); } catch (Throwable $e) { $navCategories 
 
 		<!-- Menu principal (desktop only - left side) -->
 		<ul class="navbar-nav flex-row gap-3 ms-4 d-none d-lg-flex">
-			<li class="nav-item dropdown">
-				<div class="btn-group">
-					<a class="btn btn-outline-light rounded-pill px-3" href="<?= url(['r' => 'catalog']) ?>">Catálogo</a>
-					<button class="btn btn-outline-light rounded-pill px-3 dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Mostrar categorías del catálogo"><span class="visually-hidden">Ver categorías</span></button>
-					<?php if (!empty($navCategories)): ?>
-					<ul class="dropdown-menu shadow">
-						<?php foreach ($navCategories as $cat): ?>
-							<li><a class="dropdown-item" href="<?= url(['r' => 'catalog', 'category' => (int)$cat['id']]) ?>"><?php echo htmlspecialchars($cat['name']); ?></a></li>
-						<?php endforeach; ?>
-					</ul>
+			<!-- Catálogo: mega-menú (columna especies + columna categorías dinámicas) -->
+			<li class="nav-item dropdown catalog-nav-item" id="catalogNav">
+				<a href="<?= url(['r' => 'catalog']) ?>"
+				   class="nav-link text-white d-flex align-items-center catalog-toggle"
+				   id="catalogMenuToggle"
+				   role="button"
+				   aria-haspopup="true"
+				   aria-expanded="false"
+				   aria-controls="catalogMegaMenu">
+					Catálogo <i class="fa-solid fa-chevron-down ms-1 small" aria-hidden="true"></i>
+				</a>
+				<div class="dropdown-menu catalog-megamenu shadow-lg border-0 mt-2 p-0" id="catalogMegaMenu" role="menu" aria-label="Menú de Catálogo">
+					<?php if (empty($categoriesBySpecies)): ?>
+						<div class="text-center py-3 text-muted">
+							<p class="mb-0">No hay categorías disponibles</p>
+						</div>
+					<?php else: ?>
+						<?php
+						// Preparar estructuras para nuevo formato (especies + mapping de categorías)
+						$speciesForMenu = [];
+						$catalogMapping = [];
+						foreach ($categoriesBySpecies as $slug => $data) {
+							$speciesForMenu[] = [
+								'slug' => $slug,
+								'name' => $data['name']
+							];
+							$catalogMapping[$slug] = [];
+							foreach ($data['categories'] as $cat) {
+								$catalogMapping[$slug][] = [
+									'name' => $cat['name'],
+									'slug' => $cat['slug']
+								];
+							}
+						}
+						$firstSpecies = $speciesForMenu[0]['slug'] ?? null;
+						?>
+						<div class="catalog-mega-inner d-flex">
+							<!-- Columna especies -->
+							<div class="catalog-species-list border-end">
+								<ul class="list-unstyled mb-0" role="listbox" aria-label="Especies">
+									<?php foreach ($speciesForMenu as $sp): ?>
+									<li>
+										<button type="button"
+											class="catalog-species-item w-100 text-start btn btn-link px-3 py-2 <?= $sp['slug'] === $firstSpecies ? 'active' : '' ?>"
+											data-species="<?= htmlspecialchars($sp['slug']) ?>"
+											aria-controls="catalogCategories"
+											aria-selected="<?= $sp['slug'] === $firstSpecies ? 'true' : 'false' ?>">
+											<i class="fa-solid fa-paw me-2" aria-hidden="true"></i><?= htmlspecialchars($sp['name']) ?>
+										</button>
+									</li>
+									<?php endforeach; ?>
+								</ul>
+							</div>
+							<!-- Columna categorías -->
+							<div class="catalog-category-list flex-grow-1">
+								<div class="catalog-category-header px-3 pt-3">
+									<h6 class="text-uppercase fw-semibold mb-3" id="catalogCategoryTitle">Categorías</h6>
+								</div>
+								<ul class="list-unstyled px-3 pb-3 mb-0" id="catalogCategories" aria-label="Categorías">
+									<?php if ($firstSpecies): ?>
+										<?php foreach ($catalogMapping[$firstSpecies] as $cat): ?>
+										<li class="mb-1"><a class="catalog-menu-link d-inline-block py-1 px-2 rounded-pill text-decoration-none" href="<?= url(['r'=>'catalog','species'=>$firstSpecies,'category'=>$cat['slug']]) ?>"><?= htmlspecialchars($cat['name']) ?></a></li>
+										<?php endforeach; ?>
+									<?php endif; ?>
+								</ul>
+							</div>
+						</div>
+						<script id="catalogData" type="application/json"><?= json_encode($catalogMapping) ?></script>
 					<?php endif; ?>
 				</div>
 			</li>
@@ -66,18 +145,8 @@ try { $navCategories = Category::all(); } catch (Throwable $e) { $navCategories 
 		<div class="collapse navbar-collapse" id="mainNav">
 			<!-- Main menu links for mobile only -->
 			<ul class="navbar-nav d-lg-none mb-3">
-				<li class="nav-item dropdown">
-					<div class="btn-group w-100">
-						<a class="btn btn-outline-light rounded-pill px-3" href="<?= url(['r' => 'catalog']) ?>">Catálogo</a>
-						<button class="btn btn-outline-light rounded-pill px-3 dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Mostrar categorías del catálogo"><span class="visually-hidden">Ver categorías</span></button>
-						<?php if (!empty($navCategories)): ?>
-						<ul class="dropdown-menu shadow">
-							<?php foreach ($navCategories as $cat): ?>
-								<li><a class="dropdown-item" href="<?= url(['r' => 'catalog', 'category' => (int)$cat['id']]) ?>"><?php echo htmlspecialchars($cat['name']); ?></a></li>
-							<?php endforeach; ?>
-						</ul>
-						<?php endif; ?>
-					</div>
+				<li class="nav-item">
+					<a class="btn btn-outline-light rounded-pill px-3 w-100" href="<?= url(['r' => 'catalog']) ?>">Catálogo</a>
 				</li>
 				<li class="nav-item"><a class="btn btn-outline-light rounded-pill px-3 w-100 mt-2" href="<?= url(['r' => 'adoptions']) ?>">Adopciones</a></li>
 				<li class="nav-item"><a class="btn btn-outline-light rounded-pill px-3 w-100 mt-2" href="<?= url(['r' => 'about']) ?>">Quiénes somos</a></li>

@@ -181,8 +181,11 @@ class AdminController {
   }
 
   public function products() {
+    require_once __DIR__ . '/../models/Species.php';
+    
     $products = Product::allAdmin();
     $categories = Category::all();
+    $species = Species::all();
     $flash = $_SESSION['flash'] ?? null; unset($_SESSION['flash']);
     
     // Get low stock products (usando threshold individual)
@@ -195,7 +198,8 @@ class AdminController {
     
     render('admin/products', [
         'products' => $products, 
-        'categories' => $categories, 
+        'categories' => $categories,
+        'species' => $species,
         'flash' => $flash,
         'lowStockCount' => $lowStockCount
     ]);
@@ -550,6 +554,171 @@ class AdminController {
     } else {
       header('Location: ' . url(['r' => 'admin/content']));
     }
+    exit;
+  }
+
+  // ==================== GESTIÓN DE ESPECIES ====================
+  
+  public function species() {
+    require_once __DIR__ . '/../models/Species.php';
+    
+    $species = Species::allAdmin();
+    $flash = $_SESSION['flash'] ?? null;
+    unset($_SESSION['flash']);
+    
+    render('admin/species', [
+        'species' => $species,
+        'flash' => $flash
+    ]);
+  }
+
+  public function saveSpecies() {
+    $this->checkCsrf();
+    require_once __DIR__ . '/../models/Species.php';
+    
+    $data = [
+        'id' => $_POST['id'] ?? null,
+        'name' => trim($_POST['name'] ?? ''),
+        'description' => trim($_POST['description'] ?? ''),
+        'is_active' => isset($_POST['is_active']) ? 1 : 0,
+    ];
+
+    // Validación
+    $errors = [];
+    if ($data['name'] === '') {
+        $errors[] = 'El nombre es obligatorio.';
+    }
+
+    if (!empty($errors)) {
+        $_SESSION['old'] = $data;
+        flash('error', implode('<br>', $errors));
+        header('Location: ' . url(['r' => 'admin/species']));
+        exit;
+    }
+
+    try {
+        Species::save($data);
+        flash('success', '<i class="fas fa-check-circle me-2"></i><strong>¡Éxito!</strong> La especie se guardó correctamente.');
+    } catch (Exception $e) {
+        flash('error', 'Error al guardar: ' . $e->getMessage());
+    }
+
+    header('Location: ' . url(['r' => 'admin/species']));
+    exit;
+  }
+
+  public function deleteSpecies() {
+    $this->checkCsrf();
+    require_once __DIR__ . '/../models/Species.php';
+    
+    $id = $_POST['id'] ?? null;
+    
+    if (!$id) {
+        flash('error', 'ID de especie no especificado.');
+        header('Location: ' . url(['r' => 'admin/species']));
+        exit;
+    }
+
+    // Verificar productos asociados
+    $count = Species::countProducts($id);
+    if ($count > 0) {
+        flash('error', "No se puede eliminar: hay $count producto(s) asociado(s) a esta especie.");
+        header('Location: ' . url(['r' => 'admin/species']));
+        exit;
+    }
+
+    try {
+        Species::delete($id);
+        flash('success', '<i class="fas fa-check-circle me-2"></i>Especie eliminada correctamente.');
+    } catch (Exception $e) {
+        flash('error', 'Error al eliminar: ' . $e->getMessage());
+    }
+
+    header('Location: ' . url(['r' => 'admin/species']));
+    exit;
+  }
+
+  // ==================== GESTIÓN DE CATEGORÍAS ====================
+  
+  public function categories() {
+    require_once __DIR__ . '/../models/Category.php';
+    require_once __DIR__ . '/../models/Species.php';
+    
+    $categories = Category::allAdmin();
+    $species = Species::allAdmin();
+    $flash = $_SESSION['flash'] ?? null;
+    unset($_SESSION['flash']);
+    
+    render('admin/categories', [
+        'categories' => $categories,
+        'species' => $species,
+        'flash' => $flash
+    ]);
+  }
+
+  public function saveCategory() {
+    $this->checkCsrf();
+    require_once __DIR__ . '/../models/Category.php';
+    
+    $data = [
+        'id' => $_POST['id'] ?? null,
+        'name' => trim($_POST['name'] ?? ''),
+        'description' => trim($_POST['description'] ?? ''),
+        'is_active' => isset($_POST['is_active']) ? 1 : 0,
+    ];
+
+    // Validación
+    $errors = [];
+    if ($data['name'] === '') {
+        $errors[] = 'El nombre es obligatorio.';
+    }
+
+    if (!empty($errors)) {
+        $_SESSION['old'] = $data;
+        flash('error', implode('<br>', $errors));
+        header('Location: ' . url(['r' => 'admin/categories']));
+        exit;
+    }
+
+    try {
+        Category::save($data);
+        flash('success', '<i class="fas fa-check-circle me-2"></i><strong>¡Éxito!</strong> La categoría se guardó correctamente.');
+    } catch (Exception $e) {
+        flash('error', 'Error al guardar: ' . $e->getMessage());
+    }
+
+    header('Location: ' . url(['r' => 'admin/categories']));
+    exit;
+  }
+
+  public function deleteCategory() {
+    $this->checkCsrf();
+    require_once __DIR__ . '/../models/Category.php';
+    
+    $id = $_POST['id'] ?? null;
+    
+    if (!$id) {
+        flash('error', 'ID de categoría no especificado.');
+        header('Location: ' . url(['r' => 'admin/categories']));
+        exit;
+    }
+
+    // Verificar productos asociados
+    $count = Category::countProducts($id);
+    if ($count > 0) {
+        flash('error', "No se puede eliminar: hay $count producto(s) en esta categoría.");
+        header('Location: ' . url(['r' => 'admin/categories']));
+        exit;
+    }
+
+    try {
+        Category::delete($id);
+        flash('success', '<i class="fas fa-check-circle me-2"></i>Categoría eliminada correctamente.');
+    } catch (Exception $e) {
+        flash('error', 'Error al eliminar: ' . $e->getMessage());
+    }
+
+    header('Location: ' . url(['r' => 'admin/categories']));
     exit;
   }
 }

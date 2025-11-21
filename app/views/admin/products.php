@@ -78,10 +78,9 @@
   <?php endif; ?>
   <fieldset><legend>Especies</legend>
     <label><input type="radio" name="species" value="" checked> Sin filtro</label>
-    <label><input type="radio" name="species" value="dogs"> Perros</label>
-    <label><input type="radio" name="species" value="cats"> Gatos</label>
-    <label><input type="radio" name="species" value="birds"> Aves</label>
-    <label><input type="radio" name="species" value="other"> Otros</label>
+    <?php foreach ($species as $sp): ?>
+      <label><input type="radio" name="species" value="<?= htmlspecialchars($sp['name']) ?>"> <?= htmlspecialchars($sp['name']) ?></label>
+    <?php endforeach; ?>
   </fieldset>
   <label>Categoría
     <select name="category_id" id="prod-cat">
@@ -181,6 +180,14 @@ function prefill(p) {
   document.getElementById('prod-current-img').value = p.image_url || '';
   document.getElementById('prod-featured').checked = p.is_featured == 1;
   document.getElementById('prod-active').checked = p.is_active == 1;
+  
+  // Seleccionar especie correcta
+  if (p.species) {
+    const radio = document.querySelector('input[name="species"][value="' + p.species + '"]');
+    if (radio) radio.checked = true;
+  } else {
+    document.querySelector('input[name="species"][value=""]').checked = true;
+  }
   
   // Actualizar vista previa nueva
   const newPreview = document.getElementById('product-image-preview');

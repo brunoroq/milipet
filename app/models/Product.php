@@ -69,12 +69,32 @@ class Product {
         $pdo = db_connect();
         $st = $pdo->prepare("SELECT p.*, c.name AS category_name FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE p.id=:id");
         $st->execute([':id' => $id]);
-        return $st->fetch();
+        $product = $st->fetch();
+        
+        // Obtener especies asociadas
+        if ($product) {
+            $st = $pdo->prepare("SELECT s.name FROM product_species ps JOIN species s ON s.id = ps.species_id WHERE ps.product_id = :id");
+            $st->execute([':id' => $id]);
+            $species = $st->fetchAll(PDO::FETCH_COLUMN);
+            $product['species'] = !empty($species) ? $species[0] : null; // Primera especie (actualmente solo soportamos una)
+        }
+        
+        return $product;
     }
 
     public static function allAdmin() {
         $pdo = db_connect();
-        return $pdo->query("SELECT p.*, c.name AS category_name FROM products p LEFT JOIN categories c ON c.id=p.category_id ORDER BY p.id DESC")->fetchAll();
+        $products = $pdo->query("SELECT p.*, c.name AS category_name FROM products p LEFT JOIN categories c ON c.id=p.category_id ORDER BY p.id DESC")->fetchAll();
+        
+        // Agregar especies a cada producto
+        foreach ($products as &$product) {
+            $st = $pdo->prepare("SELECT s.name FROM product_species ps JOIN species s ON s.id = ps.species_id WHERE ps.product_id = :id");
+            $st->execute([':id' => $product['id']]);
+            $species = $st->fetchAll(PDO::FETCH_COLUMN);
+            $product['species'] = !empty($species) ? $species[0] : null;
+        }
+        
+        return $products;
     }
 
     public static function save($data) {
