@@ -55,7 +55,7 @@ require_once __DIR__ . '/section-bottom.php';
         <p class="text-white small fw-semibold mb-2">Síguenos</p>
         <div class="footer-social mt-3 d-flex gap-3 justify-content-center justify-content-lg-end">
           <?php
-          $whatsappUrl = $storeConfig['store']['social']['whatsapp'] ?? 'https://wa.me/5695458036';
+          $whatsappUrl = $storeConfig['store']['social']['whatsapp'] ?? 'https://wa.me/+56995458036';
           $instagramUrl = $storeConfig['store']['social']['instagram'] ?? 'https://www.instagram.com/mili_petshop/';
           ?>
           <a href="<?= htmlspecialchars($whatsappUrl) ?>" 
