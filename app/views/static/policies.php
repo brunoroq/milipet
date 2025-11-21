@@ -37,7 +37,7 @@
             <div class="contact-item">
                 <i class="fas fa-phone"></i>
                 <h3>WhatsApp</h3>
-                <p>+56 9 0000 0000</p>
+                <p>+56 9 9545 8036</p>
             </div>
             <div class="contact-item">
                 <i class="fas fa-clock"></i>
@@ -52,7 +52,7 @@
             <div class="contact-item">
                 <i class="fab fa-instagram"></i>
                 <h3>Instagram</h3>
-                <p>@milipet</p>
+                <p>@mili_petshop</p>
             </div>
         </div>
     </section>
