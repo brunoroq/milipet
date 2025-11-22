@@ -199,47 +199,58 @@ document.addEventListener('DOMContentLoaded', function() {
     // Importante: NO se previene el click del enlace principal; navega normal.
   })();
 
-  // === Cambio dinámico de categorías en mega-menú Catálogo ===
+  // === Cambio dinámico de categorías en mega-menú Catálogo (pills + chips) ===
   (function initCatalogSpeciesSwitch(){
     const dataEl = document.getElementById('catalogData');
     const mapping = dataEl ? safeParseJSON(dataEl.textContent) : null;
-    if (!mapping) return; // nada que hacer
-    const speciesButtons = document.querySelectorAll('.catalog-species-item');
-    const categoriesList = document.getElementById('catalogCategories');
-    const titleEl = document.getElementById('catalogCategoryTitle');
-    if (!speciesButtons.length || !categoriesList) return;
+    if (!mapping) return;
+    
+    const speciesPills = document.querySelectorAll('.catalog-species-pill');
+    const categoriesContainer = document.getElementById('catalogCategories');
+    const currentSpeciesEl = document.getElementById('catalogCurrentSpecies');
+    
+    if (!speciesPills.length || !categoriesContainer) return;
 
-    function renderCategories(speciesSlug){
+    function renderCategories(speciesSlug, speciesName){
       const cats = mapping[speciesSlug] || [];
-      categoriesList.innerHTML = '';
+      categoriesContainer.innerHTML = '';
+      
       cats.forEach(cat => {
-        const li = document.createElement('li');
-        li.className = 'mb-1';
         const a = document.createElement('a');
-        a.className = 'catalog-menu-link d-inline-block py-1 px-2 rounded-pill text-decoration-none';
+        a.className = 'catalog-category-chip';
         a.textContent = cat.name;
         a.href = `/?r=catalog&species=${encodeURIComponent(speciesSlug)}&category=${encodeURIComponent(cat.slug)}`;
-        li.appendChild(a);
-        categoriesList.appendChild(li);
+        categoriesContainer.appendChild(a);
       });
-      if (titleEl) {
-        const activeBtn = document.querySelector(`.catalog-species-item.active`);
-        const spName = activeBtn ? activeBtn.textContent.trim() : 'Categorías';
-        titleEl.textContent = `Categorías - ${spName.replace(/^[^A-Za-zÁÉÍÓÚáéíóúÑñ]+/, '')}`;
+      
+      if (currentSpeciesEl) {
+        currentSpeciesEl.textContent = speciesName;
       }
     }
 
-    speciesButtons.forEach(btn => {
-      const slug = btn.getAttribute('data-species');
+    speciesPills.forEach(pill => {
+      const slug = pill.getAttribute('data-species');
+      const name = pill.getAttribute('data-species-name');
+      
       const activate = () => {
-        speciesButtons.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
-        btn.classList.add('active');
-        btn.setAttribute('aria-selected','true');
-        renderCategories(slug);
+        // Remover active de todos los pills
+        speciesPills.forEach(p => { 
+          p.classList.remove('active'); 
+          p.setAttribute('aria-selected','false'); 
+        });
+        
+        // Activar el actual
+        pill.classList.add('active');
+        pill.setAttribute('aria-selected','true');
+        
+        // Renderizar categorías
+        renderCategories(slug, name);
       };
-      btn.addEventListener('mouseenter', activate);
-      btn.addEventListener('focus', activate);
-      btn.addEventListener('click', activate);
+      
+      // Eventos: mouseenter, focus y click
+      pill.addEventListener('mouseenter', activate);
+      pill.addEventListener('focus', activate);
+      pill.addEventListener('click', activate);
     });
   })();
 
