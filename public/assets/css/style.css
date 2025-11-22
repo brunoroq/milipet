@@ -162,21 +162,156 @@ h5 { font-size: 1.125rem; }
   }
 }
 
-/* === Nuevo formato 2 columnas (especies izquierda, categorías derecha) === */
-.catalog-mega-inner { display:flex; align-items:stretch; }
-.catalog-species-list { width:220px; background:#f8f9fa; }
-.catalog-species-list ul { padding:0; margin:0; }
-.catalog-species-item { width:100%; text-align:left; font-weight:500; color:var(--text); border:0; background:none; text-decoration:none; display:block; transition:background-color .15s,color .15s; }
-.catalog-species-item:hover, .catalog-species-item:focus { background:#e9ecef; color:#000; }
-.catalog-species-item.active { background:var(--green); color:#fff; }
-.catalog-category-list { background:#fff; min-width:300px; }
-.catalog-category-header { border-bottom:1px solid #e3e6e8; }
-.catalog-category-header h6 { font-size:.75rem; letter-spacing:.05em; text-transform:uppercase; }
-.catalog-menu-link { font-size:.85rem; }
-@media (max-width: 991.98px){
-  .catalog-mega-inner { flex-direction:column; }
-  .catalog-species-list { width:100%; border-right:0; border-bottom:1px solid #e3e6e8; }
-  .catalog-category-list { min-width:100%; }
+/* === Mega-menú moderno dos columnas (especies pills + categorías chips) === */
+.catalog-megamenu {
+  min-width: 580px;
+  max-width: 680px;
+  border-radius: 1.25rem !important;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.catalog-mega-inner {
+  display: flex;
+  align-items: stretch;
+  min-height: 320px;
+}
+
+/* Columna izquierda: Especies */
+.catalog-species-column {
+  width: 200px;
+  background: #f8faf9;
+  padding: 1rem 0.75rem;
+  border-right: 1px solid #e8ebe9;
+}
+
+.catalog-species-header {
+  padding: 0 0.5rem 0.75rem;
+  border-bottom: 1px solid #e0e3e1;
+  margin-bottom: 0.75rem;
+}
+
+.catalog-species-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.catalog-species-pill {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid #2f7d32;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #2f7d32;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.catalog-species-pill:hover {
+  background: #e8f5e9;
+  border-color: #2f7d32;
+  box-shadow: 0 2px 6px rgba(47, 125, 50, 0.15);
+  transform: translateX(2px);
+}
+
+.catalog-species-pill.active {
+  background: #2f7d32;
+  color: #ffffff;
+  border-color: #2f7d32;
+  box-shadow: 0 3px 8px rgba(47, 125, 50, 0.25);
+}
+
+.catalog-species-pill i {
+  font-size: 0.875rem;
+}
+
+/* Columna derecha: Categorías */
+.catalog-category-column {
+  flex: 1;
+  background: #ffffff;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.catalog-category-header {
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid #e8ebe9;
+  margin-bottom: 1rem;
+}
+
+.catalog-category-header h6 {
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.catalog-category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-content: flex-start;
+}
+
+.catalog-category-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.875rem;
+  background: #f5f5f5;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  color: #555;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.catalog-category-chip:hover {
+  background: #e8f5e9;
+  border-color: #2f7d32;
+  color: #2f7d32;
+  box-shadow: 0 2px 6px rgba(47, 125, 50, 0.12);
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  .catalog-megamenu {
+    min-width: 100%;
+    max-width: 100%;
+    border-radius: 0.75rem !important;
+  }
+  .catalog-mega-inner {
+    flex-direction: column;
+    min-height: auto;
+  }
+  .catalog-species-column {
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid #e8ebe9;
+    padding: 0.75rem;
+  }
+  .catalog-species-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .catalog-species-pill {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 100px;
+  }
+  .catalog-category-column {
+    padding: 1rem;
+  }
 }
 
 /* Small icon images for header buttons */
@@ -372,6 +507,74 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
 .filters { display:flex; flex-wrap:wrap; gap: var(--spacing-md); margin: var(--spacing-lg) 0; padding: var(--spacing-md); background: var(--background-light); border-radius: var(--border-radius); align-items:center; }
 .filters input[type="text"], .filters select { min-width:200px; flex:1; }
 .filters .btn-outline { margin-left: auto; }
+
+/* =============================
+   CART / CARRITO (Resumen de compra moderno)
+   ============================= */
+.cart-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.cart-item {
+  background: #ffffff;
+  border: 1px solid #eef2f5;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  position: relative;
+}
+
+.cart-item:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  border-color: #e0e7ec;
+  z-index: 1;
+}
+
+.cart-thumb {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #f8f9fa;
+}
+
+.cart-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cart-item-info h6 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.cart-item-info h6 a:hover {
+  color: var(--green) !important;
+}
+
+/* Responsive para cart items */
+@media (max-width: 767.98px) {
+  .cart-item {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  
+  .cart-item > div:first-child {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .cart-item > div:last-child {
+    width: 100%;
+    justify-content: space-between !important;
+  }
+  
+  .cart-thumb {
+    width: 70px;
+    height: 70px;
+  }
+}
 
 /* Footer Modern - Lightweight Design */
 .footer-modern {

@@ -60,7 +60,7 @@ $categoriesBySpecies = mp_get_categories_by_species();
 
 		<!-- Menu principal (desktop only - left side) -->
 		<ul class="navbar-nav flex-row gap-3 ms-4 d-none d-lg-flex">
-			<!-- Catálogo: mega-menú (columna especies + columna categorías dinámicas) -->
+			<!-- Catálogo: mega-menú estilo moderno (columnas especies + categorías) -->
 			<li class="nav-item dropdown catalog-nav-item" id="catalogNav">
 				<a href="<?= url(['r' => 'catalog']) ?>"
 				   class="nav-link text-white d-flex align-items-center catalog-toggle"
@@ -71,14 +71,15 @@ $categoriesBySpecies = mp_get_categories_by_species();
 				   aria-controls="catalogMegaMenu">
 					Catálogo <i class="fa-solid fa-chevron-down ms-1 small" aria-hidden="true"></i>
 				</a>
-				<div class="dropdown-menu catalog-megamenu shadow-lg border-0 mt-2 p-0" id="catalogMegaMenu" role="menu" aria-label="Menú de Catálogo">
+				<div class="dropdown-menu catalog-megamenu shadow-lg border-0 p-0" id="catalogMegaMenu" role="menu" aria-label="Menú de Catálogo">
 					<?php if (empty($categoriesBySpecies)): ?>
-						<div class="text-center py-3 text-muted">
-							<p class="mb-0">No hay categorías disponibles</p>
+						<div class="text-center py-4 px-4 text-muted">
+							<i class="fa-solid fa-box-open fa-2x mb-2 opacity-25"></i>
+							<p class="mb-0 small">No hay categorías disponibles</p>
 						</div>
 					<?php else: ?>
 						<?php
-						// Preparar estructuras para nuevo formato (especies + mapping de categorías)
+						// Preparar estructuras para formato dos columnas
 						$speciesForMenu = [];
 						$catalogMapping = [];
 						foreach ($categoriesBySpecies as $slug => $data) {
@@ -95,36 +96,43 @@ $categoriesBySpecies = mp_get_categories_by_species();
 							}
 						}
 						$firstSpecies = $speciesForMenu[0]['slug'] ?? null;
+						$firstSpeciesName = $speciesForMenu[0]['name'] ?? '';
 						?>
-						<div class="catalog-mega-inner d-flex">
-							<!-- Columna especies -->
-							<div class="catalog-species-list border-end">
-								<ul class="list-unstyled mb-0" role="listbox" aria-label="Especies">
-									<?php foreach ($speciesForMenu as $sp): ?>
-									<li>
-										<button type="button"
-											class="catalog-species-item w-100 text-start btn btn-link px-3 py-2 <?= $sp['slug'] === $firstSpecies ? 'active' : '' ?>"
-											data-species="<?= htmlspecialchars($sp['slug']) ?>"
-											aria-controls="catalogCategories"
-											aria-selected="<?= $sp['slug'] === $firstSpecies ? 'true' : 'false' ?>">
-											<i class="fa-solid fa-paw me-2" aria-hidden="true"></i><?= htmlspecialchars($sp['name']) ?>
-										</button>
-									</li>
-									<?php endforeach; ?>
-								</ul>
-							</div>
-							<!-- Columna categorías -->
-							<div class="catalog-category-list flex-grow-1">
-								<div class="catalog-category-header px-3 pt-3">
-									<h6 class="text-uppercase fw-semibold mb-3" id="catalogCategoryTitle">Categorías</h6>
+						<div class="catalog-mega-inner">
+							<!-- Columna izquierda: Especies (pills verticales) -->
+							<div class="catalog-species-column">
+								<div class="catalog-species-header">
+									<h6 class="text-uppercase fw-semibold mb-0 small text-muted">Especies</h6>
 								</div>
-								<ul class="list-unstyled px-3 pb-3 mb-0" id="catalogCategories" aria-label="Categorías">
-									<?php if ($firstSpecies): ?>
+								<div class="catalog-species-list">
+									<?php foreach ($speciesForMenu as $sp): ?>
+									<button type="button"
+										class="catalog-species-pill <?= $sp['slug'] === $firstSpecies ? 'active' : '' ?>"
+										data-species="<?= htmlspecialchars($sp['slug']) ?>"
+										data-species-name="<?= htmlspecialchars($sp['name']) ?>"
+										aria-controls="catalogCategories"
+										aria-selected="<?= $sp['slug'] === $firstSpecies ? 'true' : 'false' ?>">
+										<i class="fa-solid fa-paw me-2" aria-hidden="true"></i><?= htmlspecialchars($sp['name']) ?>
+									</button>
+									<?php endforeach; ?>
+								</div>
+							</div>
+							
+							<!-- Columna derecha: Categorías (chips) -->
+							<div class="catalog-category-column">
+								<div class="catalog-category-header">
+									<h6 class="small text-muted mb-0">Categorías para: <span class="text-dark fw-semibold" id="catalogCurrentSpecies"><?= htmlspecialchars($firstSpeciesName) ?></span></h6>
+								</div>
+								<div class="catalog-category-chips" id="catalogCategories" aria-label="Categorías">
+									<?php if ($firstSpecies && isset($catalogMapping[$firstSpecies])): ?>
 										<?php foreach ($catalogMapping[$firstSpecies] as $cat): ?>
-										<li class="mb-1"><a class="catalog-menu-link d-inline-block py-1 px-2 rounded-pill text-decoration-none" href="<?= url(['r'=>'catalog','species'=>$firstSpecies,'category'=>$cat['slug']]) ?>"><?= htmlspecialchars($cat['name']) ?></a></li>
+										<a class="catalog-category-chip" 
+										   href="<?= url(['r'=>'catalog','species'=>$firstSpecies,'category'=>$cat['slug']]) ?>">
+											<?= htmlspecialchars($cat['name']) ?>
+										</a>
 										<?php endforeach; ?>
 									<?php endif; ?>
-								</ul>
+								</div>
 							</div>
 						</div>
 						<script id="catalogData" type="application/json"><?= json_encode($catalogMapping) ?></script>
