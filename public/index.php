@@ -98,8 +98,12 @@ switch ($routeParts[0]) {
         // Manejar rutas de tres niveles (admin/product/save)
         if (count($routeParts) >= 3 && $routeParts[1] === 'product' && $routeParts[2] === 'save') {
             $controller->saveProduct();
-        } elseif (count($routeParts) >= 3 && $routeParts[1] === 'product' && $routeParts[2] === 'delete') {
+            } elseif (count($routeParts) >= 3 && $routeParts[1] === 'product' && $routeParts[2] === 'delete') {
             $controller->deleteProduct();
+            } elseif (count($routeParts) >= 3 && $routeParts[1] === 'campaign' && $routeParts[2] === 'save') {
+                $controller->saveCampaign();
+            } elseif (count($routeParts) >= 3 && $routeParts[1] === 'campaign' && $routeParts[2] === 'delete') {
+                $controller->deleteCampaign();
         } elseif ($route === 'admin/content') {
             // Gestión de contenido (mini-CMS)
             $controller->contentIndex();

@@ -7,26 +7,39 @@
         <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
         <h2>Nueva / Editar Campaña</h2>
         
-        <input type="hidden" name="id" id="campaign-id">
+        <input type="hidden" name="id" id="campaign-id" value="<?= htmlspecialchars($old['id'] ?? '') ?>">
         
-        <label>Título <input type="text" name="title" id="campaign-title" required></label>
+        <label>Título <input type="text" name="title" id="campaign-title" required maxlength="150" value="<?= htmlspecialchars($old['title'] ?? '') ?>"></label>
+        <?php if (!empty($errors['title'])): foreach ($errors['title'] as $e): ?>
+            <div class="text-danger small"><?= htmlspecialchars($e) ?></div>
+        <?php endforeach; endif; ?>
         
-        <label>Descripción <textarea name="description" id="campaign-desc"></textarea></label>
+        <label>Descripción <textarea name="description" id="campaign-desc" maxlength="1000"><?= htmlspecialchars($old['description'] ?? '') ?></textarea></label>
+        <?php if (!empty($errors['description'])): foreach ($errors['description'] as $e): ?>
+            <div class="text-danger small"><?= htmlspecialchars($e) ?></div>
+        <?php endforeach; endif; ?>
         
         <div class="row">
             <label>Fecha de Inicio
                 <input type="date" name="start_date" id="campaign-start-date" 
-                       min="<?php echo date('Y-m-d'); ?>">
+                       value="<?= htmlspecialchars($old['start_date'] ?? '') ?>"
+                       >
+                <?php if (!empty($errors['start_date'])): foreach ($errors['start_date'] as $e): ?>
+                    <div class="text-danger small"><?= htmlspecialchars($e) ?></div>
+                <?php endforeach; endif; ?>
             </label>
             
             <label>Fecha de Fin
-                <input type="date" name="end_date" id="campaign-end-date">
+                <input type="date" name="end_date" id="campaign-end-date" value="<?= htmlspecialchars($old['end_date'] ?? '') ?>">
+                <?php if (!empty($errors['end_date'])): foreach ($errors['end_date'] as $e): ?>
+                    <div class="text-danger small"><?= htmlspecialchars($e) ?></div>
+                <?php endforeach; endif; ?>
             </label>
         </div>
         
         <label>Banner (URL)
             <input type="url" name="banner_image" id="campaign-banner" 
-                   placeholder="assets/img/banner-campana.jpg">
+                   placeholder="assets/img/banner-campana.jpg" value="<?= htmlspecialchars($old['banner_image'] ?? '') ?>">
         </label>
         
         <input type="hidden" name="current_banner_image" id="campaign-current-banner">
@@ -38,7 +51,7 @@
         <img id="preview" alt="" style="max-width:160px;border-radius:8px;margin-top:8px;display:none;">
         
         <label>
-            <input type="checkbox" name="is_active" id="campaign-active" checked> 
+            <input type="checkbox" name="is_active" id="campaign-active" <?= (isset($old['is_active']) ? ($old['is_active'] ? 'checked' : '') : 'checked') ?>> 
             Activa
         </label>
         
@@ -50,11 +63,17 @@
             </div>
         <?php endif; ?>
         
-        <button class="btn" type="submit">Guardar Campaña</button>
+    <button class="btn" type="submit">Guardar campaña</button>
     </form>
 
     <div class="campaigns-list">
-        <h2>Campañas Programadas</h2>
+            <h2>Campañas Programadas</h2>
+            <div style="margin-bottom:8px; display:flex; gap:8px; align-items:center;">
+                    <a href="?r=admin/campaigns" class="btn-outline">Vigentes (<?= $counts['vigentes'] ?>)</a>
+                    <a href="?r=admin/campaigns&tab=expired" class="btn-outline">Expiradas (<?= $counts['expiradas'] ?>)</a>
+                    <a href="?r=admin/campaigns&tab=all" class="btn-outline">Todas (<?= $counts['all'] ?>)</a>
+                    <!-- No diagnostic output; counts are shown in tabs. -->
+            </div>
         <table class="table">
             <thead>
                 <tr>
@@ -67,7 +86,9 @@
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($campaigns as $c): ?>
+                <?php if (empty($campaigns)): ?>
+                    <tr><td colspan="6">No hay campañas para mostrar en esta sección.</td></tr>
+                <?php else: foreach ($campaigns as $c): ?>
                     <?php 
                     $isPast = !empty($c['end_date']) && strtotime($c['end_date']) < strtotime('today');
                     $isCurrent = (empty($c['start_date']) || strtotime($c['start_date']) <= time()) && 
@@ -79,8 +100,16 @@
                         <td><?php echo htmlspecialchars($c['title']); ?></td>
                         <td><?php echo htmlspecialchars(mb_substr($c['description'] ?? '', 0, 50)); ?><?php echo mb_strlen($c['description'] ?? '') > 50 ? '...' : ''; ?></td>
                         <td>
-                            <span class="status-badge <?php echo $c['is_active'] ? 'active' : 'inactive'; ?>">
-                                <?php echo $c['is_active'] ? 'Activa' : 'Inactiva'; ?>
+                            <?php
+                                $statusLabel = 'Inactiva';
+                                $statusClass = 'inactive';
+                                if ($c['is_active'] == 1) {
+                                    if ($isCurrent) { $statusLabel = 'Vigente'; $statusClass = 'active'; }
+                                    elseif ($isPast) { $statusLabel = 'Expirada'; $statusClass = 'inactive'; }
+                                }
+                            ?>
+                            <span class="status-badge <?= $statusClass ?>">
+                                <?= $statusLabel ?>
                             </span>
                         </td>
                         <td class="row">
@@ -98,7 +127,7 @@
                             </form>
                         </td>
                     </tr>
-                <?php endforeach; ?>
+                <?php endforeach; endif; ?>
             </tbody>
         </table>
     </div>

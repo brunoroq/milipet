@@ -23,10 +23,27 @@ class AdminController {
   }
   
   public function campaigns() {
-    $campaigns = Campaign::all();
-    $flash = $_SESSION['flash'] ?? null;
-    unset($_SESSION['flash']);
-    render('admin/campaigns', ['campaigns' => $campaigns, 'flash' => $flash]);
+    // Show tabs: vigentes, expiradas, todas
+    $tab = $_GET['tab'] ?? 'active';
+  $all = Campaign::all();
+  $vigentes = Campaign::findVigentes();
+  $expiradas = Campaign::findExpiradas();
+
+    if ($tab === 'expired') {
+      $campaigns = $expiradas;
+    } elseif ($tab === 'all') {
+      $campaigns = $all;
+    } else {
+      $campaigns = $vigentes;
+    }
+
+    $flash = $_SESSION['flash'] ?? null; unset($_SESSION['flash']);
+    render('admin/campaigns', [
+      'campaigns' => $campaigns,
+      'flash' => $flash,
+      'tab' => $tab,
+      'counts' => [ 'all' => Campaign::countAll(), 'vigentes' => Campaign::countVigentes(), 'expiradas' => Campaign::countExpiradas() ]
+    ]);
   }
 
   public function saveCampaign() {
@@ -41,30 +58,30 @@ class AdminController {
         'banner_image' => $_POST['banner_image'] ?? '',
         'is_active' => isset($_POST['is_active']) ? 1 : 0,
     ];
-
-    // Validación básica
-    $errors = [];
-    if (trim($data['title']) === '') $errors[] = 'El título es obligatorio.';
-    
-    // Validar que end_date no sea anterior a start_date
-    if (!empty($data['start_date']) && !empty($data['end_date'])) {
-        if (strtotime($data['end_date']) < strtotime($data['start_date'])) {
-            $errors[] = 'La fecha de fin no puede ser anterior a la fecha de inicio.';
-        }
+    // Use Campaign model validation (load + validate)
+    $model = new Campaign();
+    $model->load($data);
+    if (!$model->validate()) {
+      // Pasar errores y datos previos a la vista
+      $tab = $_GET['tab'] ?? 'active';
+      $campaigns = $tab === 'expired' ? Campaign::findExpiradas() : Campaign::findVigentes();
+      render('admin/campaigns', [
+        'campaigns' => $campaigns,
+        'flash' => ['type'=>'error','messages'=>['Corrija los errores del formulario.']],
+        'errors' => $model->errors,
+        'old' => [
+          'id' => $model->id,
+          'title' => $model->title,
+          'description' => $model->description,
+          'start_date' => $model->start_date,
+          'end_date' => $model->end_date,
+          'banner_image' => $model->banner_image,
+          'is_active' => $model->is_active
+        ],
+        'tab' => $tab
+      ]);
+      return;
     }
-
-    if (!empty($errors)) {
-        $_SESSION['flash'] = ['type'=>'error', 'messages'=>$errors];
-        $campaigns = Campaign::all();
-        render('admin/campaigns', [
-            'campaigns' => $campaigns, 
-            'flash' => $_SESSION['flash'],
-            'old' => $data
-        ]);
-        unset($_SESSION['flash']);
-        return;
-    }
-
   // Manejo de subida de imagen
     if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] !== UPLOAD_ERR_NO_FILE) {
         $file = $_FILES['image_file'];
@@ -106,7 +123,14 @@ class AdminController {
         }
     }
 
-    $id = Campaign::save($data);
+    // If end_date is in the past, ensure is_active is false
+    // Apply uploaded/posted banner to model
+    if (!empty($data['banner_image'])) {
+      $model->banner_image = $data['banner_image'];
+    }
+
+    // Guardar usando la API del modelo (se aplica prepareForSave internamente)
+    $id = $model->saveModel();
     $_SESSION['flash'] = ['type'=>'success', 'messages'=>['Campaña guardada con éxito.']];
     header('Location: ?r=admin/campaigns');
     exit;
