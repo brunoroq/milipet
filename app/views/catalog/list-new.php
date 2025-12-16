@@ -12,7 +12,7 @@
 			<form method="get" action="<?= url(['r' => 'catalog']) ?>">
 				<input type="hidden" name="r" value="catalog">
 				
-				<div class="row g-3 align-items-end">
+				<div class="row g-3 align-items-end filters">
 					<!-- Search Input -->
 					<div class="col-md-3">
 						<label for="search-input" class="form-label fw-semibold">

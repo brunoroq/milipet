@@ -1,7 +1,7 @@
 <?php ?>
 
 <!-- 🎨 Hero Section -->
-<section class="main-section about-section-bg py-5">
+<section class="py-5">
     <div class="container">
         <!-- Header atractivo -->
         <div class="text-center mb-5">
@@ -166,7 +166,7 @@
                 <div class="col-md-4">
                     <div class="card shadow-sm border-0 rounded-4 overflow-hidden hover-zoom">
                         <div class="gallery-image-wrapper">
-                            <img src="<?= asset('assets/img/store-interior.jpg') ?>" 
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZSXEevFkz3H7a8cV5rZJzLUC6StVG93Wr5A&s" 
                                  alt="Interior de la tienda" 
                                  class="card-img-top gallery-image">
                             <div class="gallery-overlay">
@@ -180,7 +180,7 @@
                 <div class="col-md-4">
                     <div class="card shadow-sm border-0 rounded-4 overflow-hidden hover-zoom">
                         <div class="gallery-image-wrapper">
-                            <img src="<?= asset('assets/img/team.jpg') ?>" 
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1eYKHnm3WOMNEjFdcBTBBNr-VCFmz_ri_cQ&s" 
                                  alt="Nuestro equipo" 
                                  class="card-img-top gallery-image">
                             <div class="gallery-overlay">
