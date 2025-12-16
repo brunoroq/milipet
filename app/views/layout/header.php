@@ -29,6 +29,17 @@ if (empty($speciesList) || empty($categoryList)) {
 // Obtener categorías agrupadas por especie (para mega-menú estilo SuperZoo)
 require_once __DIR__ . '/../../helpers/header_menu.php';
 $categoriesBySpecies = mp_get_categories_by_species();
+// Route-based body class (sanitize GET param 'r')
+// FILTER_SANITIZE_STRING is deprecated; read raw and sanitize manually.
+$rawRoute = filter_input(INPUT_GET, 'r', FILTER_UNSAFE_RAW);
+$rawRoute = is_scalar($rawRoute) ? trim((string)$rawRoute) : '';
+if ($rawRoute === '') {
+	$rawRoute = 'home';
+}
+// keep only safe characters for class names
+$route = preg_replace('/[^a-z0-9_-]/i', '-', $rawRoute);
+$route = strtolower(trim($route, '-'));
+$route_class = 'route-' . ($route ?: 'home');
 ?>
 <!doctype html>
 <html lang="es">
@@ -50,7 +61,7 @@ $categoriesBySpecies = mp_get_categories_by_species();
 	<!-- Estilos del sitio -->
 	<link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
 </head>
-<body>
+<body class="<?= htmlspecialchars($route_class, ENT_QUOTES, 'UTF-8') ?>">
 <header class="navbar navbar-expand-lg navbar-dark bg-primary paw-pattern">
 	<div class="container">
 		<!-- Logo -->
@@ -196,7 +207,13 @@ $categoriesBySpecies = mp_get_categories_by_species();
 <div id="search-dim" class="search-dim" onclick="closeSearchOverlay()" aria-hidden="true"></div>
 
 <!-- Main content -->
-<main class="container mt-3">
+<main class="page-shell <?= htmlspecialchars($route_class, ENT_QUOTES, 'UTF-8') ?>">
+	<?php if (empty($is_admin_layout)): ?>
+		<div class="page-surface container">
+	<?php else: ?>
+		<div class="container mt-3">
+	<?php endif; ?>
+
 	
 	<!-- Flash Messages -->
 	<?php if ($msg = flash('error')): ?>

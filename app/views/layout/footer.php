@@ -21,7 +21,10 @@ if (!function_exists('mp_render_icon')) {
     }
 }
 ?>
+
+  </div>
 </main>
+
 
 <?php 
 // Include bottom section (newsletter or map depending on page)
@@ -52,8 +55,10 @@ require_once __DIR__ . '/section-bottom.php';
       
       <!-- Social Media - Right -->
       <div class="col-lg-4 col-md-12 text-center text-lg-end">
-        <p class="text-white small fw-semibold mb-2">Síguenos</p>
-        <div class="footer-social mt-3 d-flex gap-3 justify-content-center justify-content-lg-end">
+        <div class="footer-social-wrapper justify-content-center justify-content-lg-end">
+          <span class="footer-social-title">Síguenos</span>
+
+          <div class="footer-social d-flex gap-3">
           <?php
           $whatsappUrl = $storeConfig['store']['social']['whatsapp'] ?? 'https://wa.me/+56995458036';
           $instagramUrl = $storeConfig['store']['social']['instagram'] ?? 'https://www.instagram.com/mili_petshop/';
@@ -72,6 +77,9 @@ require_once __DIR__ . '/section-bottom.php';
              aria-label="Instagram">
             <i class="fab fa-instagram me-2"></i> Instagram
           </a>
+             </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

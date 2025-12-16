@@ -11,10 +11,13 @@
       </div>
       <div class="col-lg-7">
         <div class="newsletter-content">
-          <div class="icon-circle bg-success-subtle text-success mb-3 mx-auto mx-lg-0">
-            <i class="fas fa-envelope fs-4"></i>
-          </div>
-          <h2 class="section-title fw-bold mb-3">¿Quieres recibir ofertas para tu mejor amigo?</h2>
+          <h2 class="section-title fw-bold mb-3 d-flex align-items-center gap-3">
+            <span class="icon-circle bg-success-subtle text-success">
+              <i class="fas fa-envelope fs-4"></i>
+            </span>
+            ¿Quieres recibir ofertas para tu mejor amigo?
+          </h2>
+
           <p class="lead mb-4">Suscríbete a nuestro newsletter y recibe promociones exclusivas, consejos de cuidado y novedades de productos para tu mascota.</p>
           
           <form class="newsletter-form" action="<?= url(['r' => 'newsletter/subscribe']) ?>" method="post" onsubmit="return handleNewsletterSubmit(event)">

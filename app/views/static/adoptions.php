@@ -11,7 +11,7 @@
             <article class="event-card">
                 <div class="event-date">
                     <span class="day">28</span>
-                    <span class="month">Oct</span>
+                    <span class="month">Dic</span>
                 </div>
                 <div class="event-details">
                     <h3 class="text-dark">Gran Jornada de Adopción</h3>
@@ -24,7 +24,7 @@
             <article class="event-card">
                 <div class="event-date">
                     <span class="day">4</span>
-                    <span class="month">Nov</span>
+                    <span class="month">Ene</span>
                 </div>
                 <div class="event-details">
                     <h3 class="text-dark">Adopción Responsable</h3>
@@ -40,13 +40,13 @@
         <h2><?= cms_text('adoptions.associated_foundations_title', 'Fundaciones Asociadas') ?></h2>
         <div class="foundations-grid">
             <article class="foundation-card">
-                <img src="<?= asset('assets/img/foundation1.jpg') ?>" alt="Fundación Patitas Felices">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbs_bQ9k_sgELvQJ_H58OufmHojtRPFrkUkg&s" alt="Fundación Aperradas inc">
                 <div class="foundation-info">
-                    <h3 class="text-dark">Fundación Patitas Felices</h3>
+                    <h3 class="text-dark">Fundación Aperradas Inc</h3>
                     <p class="text-dark">Dedicados al rescate y rehabilitación de perros y gatos en situación de calle.</p>
                     <div class="foundation-contact">
-                        <a href="https://instagram.com/patitasfelices" target="_blank" class="social-link">
-                            <i class="fab fa-instagram"></i> @patitasfelices
+                        <a href="https://instagram.com/aperradas.inc" target="_blank" class="social-link">
+                            <i class="fab fa-instagram"></i> @aperradas.inc
                         </a>
                         <a href="https://wa.me/5695458036" target="_blank" class="social-link">
                             <i class="fab fa-whatsapp"></i> Contactar
@@ -56,15 +56,15 @@
             </article>
 
             <article class="foundation-card">
-                <img src="<?= asset('assets/img/foundation2.jpg') ?>" alt="Fundación Amor Animal">
+                <img src="https://scontent.fscl37-1.fna.fbcdn.net/v/t39.30808-6/352769716_1653418215159394_645944460930632504_n.png?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=JrznsgHGl_sQ7kNvwGIJKeO&_nc_oc=AdmyPStlxoryQiqJT5YAXIf-qlVN-Zs3KcgTvvCg5YYjp2VQ9vqvr4v5M1wR7Z8FYpl8xL4hMqggrjhv3RcEs5dc&_nc_zt=23&_nc_ht=scontent.fscl37-1.fna&_nc_gid=ODcBT1mhm-5efmoIKmGBvQ&oh=00_AfmpYsYM7Td9Wl8a2MwXnMuPSaVwcGPLwhs88Ac32aflrQ&oe=6946A937" alt="Leonardo Cat Food Chile">
                 <div class="foundation-info">
-                    <h3 class="text-dark">Fundación Amor Animal</h3>
+                    <h3 class="text-dark">Leonardo Cat Food Chile</h3>
                     <p class="text-dark">Especializada en el cuidado y rehabilitación de mascotas con necesidades especiales.</p>
                     <div class="foundation-contact">
-                        <a href="https://instagram.com/amoranimal" target="_blank" class="social-link">
-                            <i class="fab fa-instagram"></i> @amoranimal
+                        <a href="https://instagram.com/leonardocatfoodchile" target="_blank" class="social-link">
+                            <i class="fab fa-instagram"></i> @leonardocatfoodchile
                         </a>
-                        <a href="https://wa.me/5695458036" target="_blank" class="social-link">
+                        <a href="https://wa.me/56939173821" target="_blank" class="social-link">
                             <i class="fab fa-whatsapp"></i> Contactar
                         </a>
                     </div>
